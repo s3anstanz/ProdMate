@@ -42,12 +42,17 @@ Or copy the folder by hand:
 
 ProdMate checks what you have before it starts and works with it. Python 3.9 or newer makes it faster and more consistent (it runs ProdMate's helper scripts); without it, the agent does the same steps by hand. The audit tools are optional too: ProdMate explains what each one adds, asks before running any through `npx` or `pipx`, and marks an item "Can't verify" when a tool isn't there, with steps to check it yourself.
 
+## Getting help
+
+Found a bug, or did ProdMate get something wrong about your app? [Open an issue](https://github.com/s3anstanz/prodmate/issues/new/choose). For security problems, use the Security tab's **Report a vulnerability** instead (see [SECURITY.md](SECURITY.md)).
+
 ## What's in this repo
 
 - `skills/prodmate/`: the skill itself. This is the only folder an install copies.
 - `tests/prodmate/`: unit tests for the skill's scripts. Run them with `python3 -m unittest discover -s tests/prodmate -t .`
-- `docs/prodmate/`: design notes.
+- `docs/`: design notes, [how to release](docs/releasing.md) and [how to roll back](docs/runbooks/rollback.md).
 - `.claude-plugin/marketplace.json`: the Claude Code plugin listing.
+- `.github/`: the test workflow (Python 3.9 and latest, on Ubuntu and macOS), Dependabot config and issue templates.
 
 ## License
 

@@ -1,0 +1,38 @@
+name: Bug report
+description: ProdMate did something wrong, missed something, or crashed
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please don't paste secrets, private code or your full report. Describe them instead.
+        Security problems go through the Security tab (Report a vulnerability), not here.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: E.g. "It marked common.analytics as Missing, but my README says the app has no analytics."
+    validations:
+      required: true
+  - type: input
+    id: agent
+    attributes:
+      label: Agent and version
+      placeholder: Claude Code 2.1.x, Codex CLI 0.15x, Cursor ...
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: Kind of app you checked
+      placeholder: Next.js web app, macOS app, Flask API, CLI ...
+  - type: input
+    id: python
+    attributes:
+      label: Python version (python3 --version), or "none"
+  - type: textarea
+    id: output
+    attributes:
+      label: Script output or the relevant part of the report
+      description: For a script error, paste the JSON it printed. Remove anything private first.
+      render: text
