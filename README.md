@@ -10,7 +10,17 @@ You point your agent (Claude Code, Codex, Cursor) at a repo and say "Run ProdMat
 4. **Reports** a ranked list: launch blockers, then before you grow, then polish. Each item says who acts: the agent can fix it, the agent can check it, or you do it, with exact steps.
 5. **Acts**: it offers fixes one approved change at a time and never commits, deploys or pushes on its own.
 
-## Install
+## How to install ProdMate
+
+The easiest way to install the skill is to paste this into Claude Code, Codex, Cursor or your favorite coding agent:
+
+```
+Install the /prodmate skill globally from https://github.com/s3anstanz/prodmate
+```
+
+Then open the project you want to check and say "Run ProdMate on this repo."
+
+### Other ways to install
 
 With the [skills CLI](https://www.npmjs.com/package/skills), into any supported agent:
 
