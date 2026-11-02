@@ -49,13 +49,19 @@ class DetectTest(unittest.TestCase):
         self.assertEqual(len(result["apps"]), 1)
         self.assertEqual(result["apps"][0]["types"], ["macos-app"])
 
+    # Manifests are written at test time so the repo holds no pinned dependency files for scanners to flag.
+
     def test_monorepo_two_apps(self):
-        result = detect.detect(FIXTURES / "monorepo")
+        self.make("package.json", '{"name": "mono", "private": true, "workspaces": ["apps/*"]}')
+        self.make("apps/web/package.json", '{"dependencies": {"next": "15.0.0", "react-dom": "19.0.0"}}')
+        self.make("apps/api/package.json", '{"dependencies": {"express": "4.21.0"}}')
+        result = detect.detect(self.tmpdir)
         apps = {app["path"]: app["types"] for app in result["apps"]}
         self.assertEqual(apps, {"apps/web": ["web-app"], "apps/api": ["api-backend"]})
 
     def test_llm_overlay(self):
-        result = detect.detect(FIXTURES / "llm-flask")
+        self.make("requirements.txt", "flask==3.0.3\nanthropic>=0.40\n")
+        result = detect.detect(self.tmpdir)
         self.assertEqual(result["apps"][0]["types"], ["api-backend"])
         self.assertEqual([o["id"] for o in result["overlays"]], ["llm-app"])
         self.assertEqual(result["overlays"][0]["path"], ".")
