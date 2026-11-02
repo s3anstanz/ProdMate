@@ -37,7 +37,7 @@ Added on top of the app-type checklist when detect.py finds an `llm-app` overlay
 - tier: grow
 - why: Without limits, one huge input or a runaway answer can be slow, fail, or cost far more than it should.
 - applies-when: the app calls a model API
-- check: Done when calls set max_tokens (or the SDK's equivalent) and user input is length-checked before it's sent (cite both). Partial when only one is set. Missing when neither is.
+- check: Done when user input is length-checked before it's sent and calls set an output limit (max_tokens or the SDK's equivalent) that fits the use (cite both). Missing when user input has no length limit, even if max_tokens is set: some SDKs require max_tokens, so its presence alone proves nothing. Partial when input is limited but output isn't.
 - agent-fix: add an input length check that rejects or trims oversized input, and set max_tokens on every call
 - audit: none
 - you-do: none
