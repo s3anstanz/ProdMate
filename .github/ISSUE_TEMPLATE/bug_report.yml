@@ -6,7 +6,6 @@ body:
     attributes:
       value: |
         Thanks for reporting. Please don't paste secrets, private code or your full report. Describe them instead.
-        Security problems go through the Security tab (Report a vulnerability), not here.
   - type: textarea
     id: what
     attributes:
