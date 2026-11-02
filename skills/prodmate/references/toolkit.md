@@ -1,6 +1,6 @@
 # Toolkit check
 
-prodmate works with whatever the person has. Each tool below makes some checks possible or more reliable. A missing tool never stops the run: the items it would have checked become **Can't verify**, and the report says how to check them by hand.
+ProdMate works with whatever the person has. Each tool below makes some checks possible or more reliable. A missing tool never stops the run: the items it would have checked become **Can't verify**, and the report says how to check them by hand.
 
 ## Contents
 
@@ -36,7 +36,7 @@ If they don't answer, assume **Some**. Never treat the answer as a gate: whateve
 
 | Tool | What it unlocks | Without it | How to get it |
 |---|---|---|---|
-| `python3` (3.9 or newer) | prodmate's helper scripts: consistent app detection, audit runs with clean results, and remembering decisions between runs | You follow the same steps by hand (see "Without Python"). Slower, less consistent, and decisions aren't remembered. | macOS: `xcode-select --install` (Apple's Command Line Tools include it), or python.org. Linux: `sudo apt install python3` (or your distro's package manager). |
+| `python3` (3.9 or newer) | ProdMate's helper scripts: consistent app detection, audit runs with clean results, and remembering decisions between runs | You follow the same steps by hand (see "Without Python"). Slower, less consistent, and decisions aren't remembered. | macOS: `xcode-select --install` (Apple's Command Line Tools include it), or python.org. Linux: `sudo apt install python3` (or your distro's package manager). |
 | `git` | Scanning the whole history for leaked secrets, and checking release tags | Only the current files are scanned; release checks are Can't verify | Comes with Apple's Command Line Tools; Linux: `sudo apt install git` |
 | `gh`, signed in | Docs-vs-reality checks against GitHub: releases, CI results, whether Issues are on | Those halves are Can't verify | `brew install gh`, then `gh auth login` |
 | `node` / `npx` | Runs **lighthouse** (page speed, accessibility, SEO) and **http-observatory** (security headers) without installing them globally | Those web checks are Can't verify | nodejs.org, or `brew install node` |

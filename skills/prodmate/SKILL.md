@@ -3,9 +3,9 @@ name: prodmate
 description: Checks whether an app built with an AI coding agent is ready for production launch, and helps close the gaps. Use when the user asks if their app is production-ready or launch-ready, wants a pre-launch checklist or audit, or asks what they're missing before shipping. Detects the app type (web app, macOS app, LLM app and more), skips items that don't apply or would break the app's own stated promises, checks the rest with file-level evidence and free audit tools (Lighthouse, osv-scanner, gitleaks and others), writes a ranked report, and offers fixes one approved change at a time.
 ---
 
-# prodmate
+# ProdMate
 
-prodmate checks whether an app is ready for production, in five phases: **Detect → Triage → Assess → Report → Act**. It reads the repo, decides which checklist items apply, checks them with evidence and free audit tools, writes a ranked report, and then offers fixes one approved change at a time.
+ProdMate checks whether an app is ready for production, in five phases: **Detect → Triage → Assess → Report → Act**. It reads the repo, decides which checklist items apply, checks them with evidence and free audit tools, writes a ranked report, and then offers fixes one approved change at a time.
 
 Paths below are relative to this skill's folder (the folder that holds this file). Run scripts with `python3` (3.9 or newer); they use only the standard library and install nothing.
 
@@ -45,7 +45,7 @@ Statuses are exactly **Done · Partial · Missing · Can't verify** (plus Not ap
    - `references/app-types/web-app.md` for `web-app`
    - `references/app-types/macos-app.md` for `macos-app`
    - `references/overlays/llm-app.md` for the `llm-app` overlay
-2. For a type with no v1 checklist (`ios-android`, `cli`, `api-backend`, `library`, `browser-extension`, `unknown`), say "prodmate v1 has no <type> checklist yet; checking the common items" and continue with `common.md` and any overlays.
+2. For a type with no v1 checklist (`ios-android`, `cli`, `api-backend`, `library`, `browser-extension`, `unknown`), say "ProdMate v1 has no <type> checklist yet; checking the common items" and continue with `common.md` and any overlays.
 3. **Prompt and agent repos:** when the repo is prompts, skills or agent definitions that run inside someone's coding agent (markdown system prompts, no code calling a model API), load `llm-app.md` by judgment: `llm.prompt-injection` and `llm.evals` apply; `llm.spend-caps`, `llm.model-fallback` and `llm.token-limits` are Not applicable because the user's own agent makes the API calls.
 4. Mark every item **applies** or **Not applicable**, using its `applies-when` line **as written**. Don't stretch an item to an app its `applies-when` excludes, even when you see a related risk (e.g. `common.multi-device-testing` for a terminal app that claims Windows support, or `web.db-backups` for data kept in markdown files). Report such a risk once under "Other things I noticed" in the report instead; it doesn't count toward the tiers. Each Not applicable item gets a one-line reason of one of these kinds:
    - **app-type:** the app doesn't have the thing (no web pages, no database, no accounts, not a macOS app).

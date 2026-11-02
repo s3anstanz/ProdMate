@@ -1,4 +1,4 @@
-# prodmate report self-check
+# ProdMate report self-check
 
 Use this after writing the report. Answer each check with pass or fail. If any check fails, fix the report before showing it.
 

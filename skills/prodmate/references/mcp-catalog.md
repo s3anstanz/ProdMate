@@ -10,7 +10,7 @@ Official MCP (Model Context Protocol) servers that let the agent help set up a t
 
 ## Rules for every MCP action
 
-- **Suggest, don't connect.** Offer the server, say what it would let you do, and let the user add it to their agent. prodmate v1 never configures one itself.
+- **Suggest, don't connect.** Offer the server, say what it would let you do, and let the user add it to their agent. ProdMate v1 never configures one itself.
 - **Every outward action needs its own explicit yes:** anything that creates an account, project or resource, spends money, changes DNS, deploys, or pushes. One yes covers one action, not a session.
 - **Prefer read-only and narrow scopes** where the server offers them (listed below).
 - **Never suggest a server that breaks a stated promise** (no analytics or error-tracking server for an app that promises no tracking).

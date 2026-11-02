@@ -1,12 +1,13 @@
 {
   "name": "prodmate",
-  "description": "prodmate: checks whether an app is ready for production launch, and helps close the gaps.",
+  "description": "ProdMate: checks whether an app is ready for production launch, and helps close the gaps.",
   "owner": {
     "name": "Sean Schireson"
   },
   "plugins": [
     {
       "name": "prodmate",
+      "displayName": "ProdMate",
       "source": "./skills/prodmate",
       "description": "Checks whether an app built with an AI coding agent is ready for production launch, and helps close the gaps."
     }

@@ -13,7 +13,7 @@ How to run each free audit through `scripts/audits.py`, and how to turn its resu
 - checkdmarc
 - codesign
 - Noise rules
-- Audits prodmate doesn't run for you
+- Audits ProdMate doesn't run for you
 
 ## Before any audit: consent
 
@@ -104,10 +104,10 @@ Never mark an item Done from an audit that didn't return `ok`.
 - **Dev-only dependencies:** a vulnerability in a package that never ships (test runners, build tools, linters) is noise for launch. For each osv finding, say whether the package ships to production (Node: is it in `dependencies` or only `devDependencies`?). Dev-only findings make the item Partial at most, never a launch blocker.
 - **Lighthouse varies run to run:** always use the median of 3 (the script does this); never quote a single run.
 - **DKIM:** can't be confirmed without a selector. Never mark it Done or Missing from DNS alone.
-- **Audits that run code:** `pip-audit -r requirements.txt` installs packages, and `osv-scanner fix` and `npm install` can run package scripts. On a repo you don't know, ask before any of them. prodmate's own osv-scanner and gitleaks runs only read files.
+- **Audits that run code:** `pip-audit -r requirements.txt` installs packages, and `osv-scanner fix` and `npm install` can run package scripts. On a repo you don't know, ask before any of them. ProdMate's own osv-scanner and gitleaks runs only read files.
 - **Accounts you can't see:** spend caps, uptime monitors, backups and alert settings live in outside dashboards. No audit here checks them; they're Can't verify unless the user shows you.
 
-## Audits prodmate doesn't run for you
+## Audits ProdMate doesn't run for you
 
 These help but aren't in `audits.py` yet. Mention them under "You do" when they fit, with the command to run:
 
