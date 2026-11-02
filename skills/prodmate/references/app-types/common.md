@@ -52,7 +52,7 @@ Loaded for every app type. Each item lists when it applies, what counts as done,
 - tier: grow
 - why: Small automatic tests prove each piece still works after you or an agent change it.
 - applies-when: always
-- check: Done when the repo has unit tests for its core logic and they run (cite the test dir and the test command; run it if consent allows). Partial when tests exist but cover only a small part of the code or don't pass. Missing when there are none.
+- check: Done when the repo has unit tests for its core logic and they run: locally (if consent allows) or in CI. Cite the test dir and the CI step that runs them, plus a passing run when you can see one (a local run, or `gh run list`). Tests that exist and that CI runs count as Done even when you can't run them yourself; say which evidence you saw. Partial when tests exist but cover only a small part of the code, nothing runs them, or the last run failed. Missing when there are none.
 - agent-fix: add unit tests for the most important module using the repo's existing test framework (or the language's standard one), and a test command in the manifest
 - audit: none
 - you-do: none
@@ -61,7 +61,7 @@ Loaded for every app type. Each item lists when it applies, what counts as done,
 - tier: grow
 - why: One quick end-to-end test that the app starts and its main action works catches the worst breakages in seconds.
 - applies-when: always
-- check: Done when a test starts the real app (or its server, or binary) and exercises the main flow (e.g. a Playwright test, an XCUITest or a script in CI that launches the built app). Missing when only unit tests exist.
+- check: Done when a test starts the real app (or its server, or binary) and exercises the main flow (e.g. a Playwright test, an XCUITest or a script in CI that launches the built app), and CI or a local run executes it (cite both, as for common.unit-tests). Missing when only unit tests exist.
 - agent-fix: add one end-to-end test of the main flow in the repo's existing framework, and run it in CI if CI exists
 - audit: none
 - you-do: none
@@ -78,7 +78,7 @@ Loaded for every app type. Each item lists when it applies, what counts as done,
 ### common.release-process
 - tier: grow
 - why: A written, repeatable release process means each version can be found, installed and rolled back.
-- applies-when: the app is shipped to anyone other than its author (deployed, published or downloadable)
+- applies-when: the app is meant for people other than its author (a public repo people install from, or anything deployed, published or downloadable), even before its first release; or its docs describe a release process
 - check: Compare what README, CONTRIBUTING or docs say about releases (tags, version numbers, release notes, a release script) with reality: `git tag` and, when gh is available, `gh release list`. Done when the docs and the tags or releases match. Missing when the docs describe tagging or releases but none exist (cite the doc line and the empty tag list). Partial when releases exist but the process isn't written down. Can't verify the GitHub releases half when gh isn't available; say so.
 - agent-fix: write the release steps into CONTRIBUTING.md or docs/releasing.md to match how the repo actually builds, and add a release script or workflow that tags the version; never create a tag or release without an explicit yes
 - audit: none
@@ -87,7 +87,7 @@ Loaded for every app type. Each item lists when it applies, what counts as done,
 ### common.rollback-plan
 - tier: grow
 - why: When a release breaks something, a written rollback plan gets the last good version back in minutes instead of hours.
-- applies-when: the app is shipped to anyone other than its author
+- applies-when: the app is meant for people other than its author, even before its first release
 - check: Done when docs/runbooks/rollback.md or an equivalent doc says how to return to the previous version for this app's deploy or distribution method. Missing when no such doc exists.
 - agent-fix: offer to write docs/runbooks/rollback.md for this app's deploy or distribution method (e.g. promote the previous Vercel deployment, re-publish the previous GitHub Release, revert the Homebrew cask version), with the exact commands
 - audit: none
@@ -105,7 +105,7 @@ Loaded for every app type. Each item lists when it applies, what counts as done,
 ### common.error-tracking
 - tier: grow
 - why: Error tracking tells you about crashes your users hit but never report.
-- applies-when: the app has users other than its author. Not applicable when the app promises no network, no tracking or no telemetry; the reason quotes the promise.
+- applies-when: the app is meant for people other than its author. Not applicable when the app promises no network, no tracking or no telemetry; the reason quotes the promise.
 - check: Done when an error-tracking setup exists in code (e.g. a Sentry SDK init, or a local crash-report flow) and is wired up for production. Missing when none exists.
 - agent-fix: for apps with no privacy promise, add the SDK init for a tracker the user picks, reading its DSN from an environment variable; never suggest a hosted service to an app that promises no network or no tracking. For those, the only option is local and user-initiated: e.g. a "Report a problem" action that attaches the OS crash log to an email or a GitHub issue the user sends themselves.
 - audit: none
@@ -114,7 +114,7 @@ Loaded for every app type. Each item lists when it applies, what counts as done,
 ### common.analytics
 - tier: grow
 - why: Analytics show which features people use, so you know what to build next.
-- applies-when: the app has users other than its author. Not applicable when the app promises no analytics, no tracking, no telemetry or no network; the reason quotes the promise.
+- applies-when: the app is meant for people other than its author. Not applicable when the app promises no analytics, no tracking, no telemetry or no network; the reason quotes the promise.
 - check: Done when an analytics SDK or privacy-friendly counter is set up and documented in the privacy policy. Missing when none exists.
 - agent-fix: for apps with no privacy promise, add the analytics snippet or SDK the user picks and mention it in the privacy policy; never suggest a hosted analytics service to an app that promises no analytics, no tracking or no network
 - audit: none
@@ -170,7 +170,7 @@ Loaded for every app type. Each item lists when it applies, what counts as done,
 ### common.support-channel
 - tier: polish
 - why: People need a way to report a bug or ask for help, or they just leave.
-- applies-when: the app has users other than its author
+- applies-when: the app is meant for people other than its author
 - check: Done when the README, app or site names a support path (GitHub Issues enabled, a support email, a feedback form, or an in-app "Report a problem"). Missing otherwise.
 - agent-fix: add a "Getting help" section to the README and, for apps with a UI, a link to it; for GitHub repos, an issue template in .github/ISSUE_TEMPLATE
 - audit: none

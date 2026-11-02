@@ -8,7 +8,7 @@ Use this after writing the report. Answer each check with pass or fail. If any c
 2. Is every item skipped for a promise quoting that promise, with its `file:line`?
 3. For an app type with no v1 checklist, does the report say so and say the common items were checked?
 4. If the user said the app is personal, are public-launch items (SEO, domain, privacy pages, uptime, release process and the rest) Not applicable rather than gaps?
-5. Does every reported gap really apply to this app (no web items for a macOS app, no API-call items for a prompt-only repo)?
+5. Does every reported item meet its `applies-when` line as written (no web items for a macOS app, no API-call items for a prompt-only repo, no item stretched to cover a related risk)? Risks no item covers belong only under "Other things I noticed".
 
 ## Evidence
 

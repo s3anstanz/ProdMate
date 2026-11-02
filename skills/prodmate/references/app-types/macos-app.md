@@ -14,7 +14,7 @@ Loaded when detect.py finds a `macos-app`. The codesign audit needs a built `.ap
 - tier: blocker
 - why: macOS blocks apps that aren't signed with an Apple Developer ID, so anyone else who downloads yours sees a warning or can't open it.
 - applies-when: the app is meant for people other than its author and is distributed outside the Mac App Store
-- check: Run the codesign audit on the built .app. Done when codesign shows "Authority=Developer ID Application". Missing when the signature is ad-hoc ("Signature=adhoc") or absent; also check the build or release script for a codesign --sign step (cite file:line). Can't verify without a built app.
+- check: Run the codesign audit on the built .app. Done when codesign shows "Authority=Developer ID Application". Missing when the signature is ad-hoc ("Signature=adhoc") or absent; also check the build or release script for a codesign --sign step (cite file:line). Without a built app, the scripts decide: Missing when the build and release scripts sign only ad-hoc (codesign --sign -) or not at all; Can't verify only when a script has a Developer ID signing step but there's no built app to confirm it.
 - agent-fix: add a Developer ID signing step (codesign --sign "Developer ID Application: ..." --options runtime) to the release script or workflow, reading the identity from a secret
 - audit: codesign
 - you-do: 1) Join the Apple Developer Program at developer.apple.com (it costs money each year). 2) In Xcode > Settings > Accounts, create a "Developer ID Application" certificate. 3) For CI, export it as a .p12 and add it and its password as repository secrets.
@@ -23,7 +23,7 @@ Loaded when detect.py finds a `macos-app`. The codesign audit needs a built `.ap
 - tier: blocker
 - why: Apple must scan and approve (notarize) a downloaded app, or macOS refuses to open it for most people.
 - applies-when: the app is distributed outside the Mac App Store
-- check: Run the codesign audit. Done when spctl says "accepted" with "source=Notarized Developer ID". Missing when spctl rejects it, or when the release script has no notarytool submit and stapler staple step. Can't verify without a built app.
+- check: Run the codesign audit. Done when spctl says "accepted" with "source=Notarized Developer ID". Missing when spctl rejects it, or when the release script has no notarytool submit and stapler staple step. Without a built app, the scripts decide: Missing when no script or workflow has a notarytool submit step; Can't verify only when one exists but there's no built app to confirm it.
 - agent-fix: add xcrun notarytool submit --wait and xcrun stapler staple steps to the release script, reading credentials from a keychain profile or secrets
 - audit: codesign
 - you-do: create an app-specific password at appleid.apple.com, then run `xcrun notarytool store-credentials` once on your Mac (or add the values as CI secrets)

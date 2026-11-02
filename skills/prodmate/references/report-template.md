@@ -48,6 +48,10 @@ Fill this in for `.prodmate/report.md`. Keep the section order. Leave out a tier
 
 <same item format>
 
+## Other things I noticed
+
+<Only real risks that no checklist item covers (e.g. a supported OS that CI never tests, data with no backup outside git, a broken promise). One short paragraph each, with evidence and a next step. Not counted in the tiers. Leave the section out when there's nothing.>
+
 ## You do
 
 1. **<item id>: <short title>.** <Exact steps a non-engineer can follow: where to sign in, what to click, what to paste, how to know it worked.>
