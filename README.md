@@ -48,4 +48,4 @@ Found a bug, or did ProdMate get something wrong about your app? [Open an issue]
 
 ## License
 
-MIT. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+MIT. See [LICENSE](LICENSE).
