@@ -67,7 +67,11 @@ AUDITS = {
     },
 }
 
-LIGHTHOUSE_CATEGORIES = "performance,accessibility,best-practices,seo"
+OSV_LOCKFILES = [
+    "package-lock.json", "pnpm-lock.yaml", "yarn.lock", "bun.lock", "poetry.lock", "uv.lock", "Pipfile.lock",
+    "requirements.txt", "Cargo.lock", "go.mod", "Package.resolved", "Gemfile.lock", "composer.lock", "pubspec.lock",
+]
+LIGHTHOUSE_CATEGORIES ="performance,accessibility,best-practices,seo"
 LAUNCHERS = {"npx": ["npx", "--yes"], "pipx": ["pipx", "run"]}
 
 
@@ -274,20 +278,34 @@ def run_lighthouse(prefix, target, runs, timeout):
     return parse_lighthouse(reports)
 
 
-def run_osv(prefix, target, timeout):
-    argv = prefix + ["scan", "source", "-r", "--format", "json", target]
+def osv_call(argv, timeout):
     try:
         proc = subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
         raise AuditError(f"osv-scanner timed out after {timeout}s")
     except OSError as exc:
         raise AuditError(f"osv-scanner could not start: {exc.strerror or exc}")
-    if proc.returncode == 128 and "No package sources found" in proc.stderr:
-        return result("osv-scanner", "ok", "No package sources found: osv-scanner found no lockfile or manifest to check")
-    if proc.returncode not in (0, 1):
+    no_sources = proc.returncode == 128 and "No package sources found" in proc.stderr
+    if not no_sources and proc.returncode not in (0, 1):
         detail = one_line(proc.stderr) or "no output"
         raise AuditError(f"osv-scanner exited with code {proc.returncode}: {detail}")
-    return parse_osv(load_json("osv-scanner", proc.stdout))
+    return proc, no_sources
+
+
+def run_osv(prefix, target, timeout):
+    proc, no_sources = osv_call(prefix + ["scan", "source", "-r", "--format", "json", target], timeout)
+    if not no_sources:
+        return parse_osv(load_json("osv-scanner", proc.stdout))
+    # A recursive scan skips paths an enclosing repo's .gitignore hides, so scan root lockfiles directly.
+    lockfiles = [str(Path(target, name)) for name in OSV_LOCKFILES if Path(target, name).is_file()]
+    if not lockfiles:
+        return result("osv-scanner", "ok", "No package sources found: osv-scanner found no lockfile or manifest to check")
+    results = []
+    for lockfile in lockfiles:
+        proc, _ = osv_call(prefix + ["scan", "source", "-L", lockfile, "--format", "json"], timeout)
+        data = load_json("osv-scanner", proc.stdout)
+        results += data.get("results") or [] if isinstance(data, dict) else []
+    return parse_osv({"results": results})
 
 
 def is_git_repo(path):

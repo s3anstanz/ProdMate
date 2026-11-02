@@ -169,6 +169,26 @@ class RunTest(unittest.TestCase):
         self.assertEqual(result["status"], "ok")
         self.assertIn("No package sources found", result["summary"])
 
+    def test_osv_no_sources_but_lockfile_present_rescans_lockfile(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as repo:
+            Path(repo, "package-lock.json").write_text("{}")
+            calls = []
+
+            def fake_run(argv, **kwargs):
+                calls.append(argv)
+                if "-L" in argv:
+                    return subprocess.CompletedProcess(argv, 1, stdout=text("osv-scanner.json"), stderr="")
+                return subprocess.CompletedProcess(argv, 128, stdout="", stderr="No package sources found, --help for usage information.\n")
+
+            with mock.patch.object(audits.shutil, "which", return_value="/usr/local/bin/osv-scanner"), \
+                    mock.patch.object(audits.subprocess, "run", side_effect=fake_run):
+                result = audits.run("osv-scanner", repo)
+        self.assertEqual(result["status"], "issues")
+        self.assertEqual(len(calls), 2)
+        self.assertIn(str(Path(repo, "package-lock.json")), calls[1])
+
     def test_timeout_returns_error(self):
         boom = subprocess.TimeoutExpired(cmd=["osv-scanner"], timeout=300)
         with mock.patch.object(audits.shutil, "which", return_value="/usr/local/bin/osv-scanner"), \
