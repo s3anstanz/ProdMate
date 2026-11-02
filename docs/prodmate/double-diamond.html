@@ -1,0 +1,232 @@
+<title>prodmate Double Diamond</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one long engineering-notebook sheet; the diamond diagram up top, then four phase panels in diamond order. */
+:root {
+  --bg: #f6f7f4;
+  --surface: #ffffff;
+  --fg: #1d2420;
+  --muted: #5d6862;
+  --rule: #d9ded8;
+  --discover: #2f6f5e;
+  --define: #8a5a14;
+  --develop: #3b5f99;
+  --deliver: #8c3b4a;
+  --tint-a: #e6f0ec;
+  --tint-b: #e9eef7;
+  --display: "Fraunces", Georgia, "Times New Roman", serif;
+  --body: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131815; --surface: #1a201c; --fg: #e4e9e5; --muted: #9aa69f; --rule: #2e3732;
+    --discover: #6cc0a6; --define: #e0ad5c; --develop: #8fb1ea; --deliver: #e58c9c;
+    --tint-a: #1c2a24; --tint-b: #1c2330;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131815; --surface: #1a201c; --fg: #e4e9e5; --muted: #9aa69f; --rule: #2e3732;
+  --discover: #6cc0a6; --define: #e0ad5c; --develop: #8fb1ea; --deliver: #e58c9c;
+  --tint-a: #1c2a24; --tint-b: #1c2330;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--body); font-size: 15px; line-height: 1.55;
+}
+.wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 64px;
+}
+header { display: grid; gap: 8px; margin-bottom: 28px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 650; font-size: clamp(30px, 5vw, 44px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lede { max-width: 66ch; color: var(--muted); margin: 0; font-size: 16px; }
+
+.diagram { overflow-x: auto; margin: 8px 0 36px; }
+.diagram svg { display: block; width: 100%; min-width: 640px; height: auto; }
+.diagram text { font-family: var(--body); }
+
+.problem {
+  border-left: 3px solid var(--define);
+  padding: 4px 0 4px 16px; margin: 0 0 36px; max-width: 72ch;
+}
+.problem strong { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--define); display: block; margin-bottom: 4px; }
+.problem p { margin: 0; font-family: var(--display); font-size: 19px; line-height: 1.4; font-weight: 500; }
+
+.phases { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+@media (max-width: 760px) { .phases { grid-template-columns: 1fr; } }
+.phase {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 20px 22px; display: grid; gap: 14px; align-content: start; min-width: 0;
+  border-top: 4px solid var(--c);
+}
+.phase h2 { font-family: var(--display); font-weight: 650; font-size: 24px; margin: 0; color: var(--c); display: flex; align-items: baseline; gap: 10px; }
+.phase h2 .mode { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 400; }
+.phase p.q { margin: 0; color: var(--muted); }
+.phase h3 { font-size: 12px; font-family: var(--mono); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin: 4px 0 -6px; font-weight: 500; }
+.phase ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.phase li { padding-left: 2px; }
+.phase li b { font-weight: 600; }
+.discover { --c: var(--discover); }
+.define { --c: var(--define); }
+.develop { --c: var(--develop); }
+.deliver { --c: var(--deliver); }
+
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-family: var(--mono); font-size: 12px; padding: 2px 8px; border-radius: 3px; background: var(--tint-a); color: var(--fg); }
+.develop .tag, .deliver .tag { background: var(--tint-b); }
+
+.flow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-family: var(--mono); font-size: 13px; }
+.flow span.step { border: 1px solid var(--c); color: var(--c); padding: 3px 9px; border-radius: 3px; }
+.flow span.arrow { color: var(--muted); }
+
+footer { margin-top: 36px; color: var(--muted); font-size: 13px; font-family: var(--mono); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Design · draft · 2 Nov 2026</div>
+    <h1>prodmate, mapped as a double diamond</h1>
+    <p class="lede">An open source agent skill that reads an app built with AI, works out which production-readiness items apply, checks what's done, fixes what an agent can, runs free audits for what it can't, and gives you a plain to-do list for the rest.</p>
+  </header>
+
+  <div class="diagram" role="img" aria-label="Double diamond: Discover widens, Define narrows to the problem statement, Develop widens, Deliver narrows to v1.">
+    <svg viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="20,150 260,30 500,150 260,270" fill="var(--tint-a)" stroke="var(--rule)" stroke-width="1.5"/>
+      <polygon points="500,150 740,30 980,150 740,270" fill="var(--tint-b)" stroke="var(--rule)" stroke-width="1.5"/>
+      <line x1="260" y1="30" x2="260" y2="270" stroke="var(--rule)" stroke-dasharray="4 5"/>
+      <line x1="740" y1="30" x2="740" y2="270" stroke="var(--rule)" stroke-dasharray="4 5"/>
+      <text x="140" y="140" text-anchor="middle" font-size="22" font-weight="650" fill="var(--discover)" style="font-family:var(--display)">Discover</text>
+      <text x="140" y="164" text-anchor="middle" font-size="12" fill="var(--muted)">go wide</text>
+      <text x="380" y="140" text-anchor="middle" font-size="22" font-weight="650" fill="var(--define)" style="font-family:var(--display)">Define</text>
+      <text x="380" y="164" text-anchor="middle" font-size="12" fill="var(--muted)">narrow</text>
+      <text x="620" y="140" text-anchor="middle" font-size="22" font-weight="650" fill="var(--develop)" style="font-family:var(--display)">Develop</text>
+      <text x="620" y="164" text-anchor="middle" font-size="12" fill="var(--muted)">go wide</text>
+      <text x="860" y="140" text-anchor="middle" font-size="22" font-weight="650" fill="var(--deliver)" style="font-family:var(--display)">Deliver</text>
+      <text x="860" y="164" text-anchor="middle" font-size="12" fill="var(--muted)">narrow</text>
+      <circle cx="500" cy="150" r="6" fill="var(--define)"/>
+      <text x="500" y="292" text-anchor="middle" font-size="12" fill="var(--muted)" style="font-family:var(--mono)">problem statement</text>
+      <circle cx="980" cy="150" r="6" fill="var(--deliver)"/>
+      <text x="975" y="292" text-anchor="end" font-size="12" fill="var(--muted)" style="font-family:var(--mono)">v1 skill</text>
+      <text x="260" y="20" text-anchor="middle" font-size="11" fill="var(--muted)" style="font-family:var(--mono)">THE PROBLEM</text>
+      <text x="740" y="20" text-anchor="middle" font-size="11" fill="var(--muted)" style="font-family:var(--mono)">THE SOLUTION</text>
+    </svg>
+  </div>
+
+  <div class="problem">
+    <strong>Problem statement</strong>
+    <p>AI-built apps get to "it runs" without anyone asking "is it ready to launch?" The tools that cover the whole list only read and report. The tools that run real audits only cover security.</p>
+  </div>
+
+  <div class="phases">
+    <section class="phase discover">
+      <h2>Discover <span class="mode">go wide</span></h2>
+      <p class="q">What's the real problem, and where would a checker go wrong?</p>
+      <h3>What we found</h3>
+      <ul>
+        <li><b>Bloom test run:</b> 12 of 40 items applied. Its real gaps (notarization, release tags, updates) aren't on the list.</li>
+        <li><b>The list would break Bloom's promise</b> by recommending analytics in a "never touches the network" app.</li>
+        <li><b>Prior art exists:</b> list-wide skills that only read and report; scanners that only cover security.</li>
+        <li><b>One skill format</b> (agentskills.io) runs in Claude Code, Codex, Cursor and more, but helper-agent support varies.</li>
+      </ul>
+      <h3>Edge cases</h3>
+      <div class="tags">
+        <span class="tag">monorepos</span><span class="tag">mixed app types</span><span class="tag">no lockfile</span>
+        <span class="tag">not deployed yet</span><span class="tag">already live</span><span class="tag">never launching</span>
+        <span class="tag">stated promises</span><span class="tag">public-by-design keys</span><span class="tag">dev-only deps</span>
+        <span class="tag">DKIM selectors</span><span class="tag">noisy Lighthouse</span><span class="tag">audits that run code</span>
+        <span class="tag">docs vs reality</span><span class="tag">no tests to verify fixes</span><span class="tag">no subagents</span>
+        <span class="tag">re-runs</span><span class="tag">stale prices</span><span class="tag">novice vs expert</span>
+      </div>
+      <h3>Missed opportunities</h3>
+      <ul>
+        <li>Checklists per app type: macOS, mobile, CLI, API, library, extension, LLM app</li>
+        <li>Compliance overlays: health, payments, kids, EU</li>
+        <li>Go-to-market items: store listing, changelog, support channel, license</li>
+        <li>Generated runbooks for rollback and restore</li>
+        <li>MCP setup so the agent can configure tools for you</li>
+      </ul>
+    </section>
+
+    <section class="phase define">
+      <h2>Define <span class="mode">narrow</span></h2>
+      <p class="q">What makes prodmate worth building?</p>
+      <h3>Differentiators</h3>
+      <ul>
+        <li><b>Knows the app type,</b> not just web</li>
+        <li><b>Respects the app's promises,</b> and explains every skip in one line</li>
+        <li><b>Checks for real</b> with free audit tools</li>
+        <li><b>Fixes with permission,</b> in the repo's own style</li>
+        <li><b>"Can't verify" is a status,</b> never a silent pass</li>
+        <li><b>Plain words:</b> usable without knowing GitHub</li>
+      </ul>
+      <h3>Anti-goals</h3>
+      <ul>
+        <li>Breaking an app's stated promise</li>
+        <li>Accounts, spend, DNS, deploys or pushes without approval</li>
+        <li>Claiming a check that didn't run</li>
+        <li>A 40-item wall burying the 3 that matter</li>
+      </ul>
+    </section>
+
+    <section class="phase develop">
+      <h2>Develop <span class="mode">go wide</span></h2>
+      <p class="q">What shape could the solution take?</p>
+      <h3>Packaging</h3>
+      <ul>
+        <li><b>Single skill folder</b> as the core (chosen)</li>
+        <li>Claude Code plugin wrapper for <code>/prodmate</code> (later)</li>
+        <li>Manifests per agent like obra/superpowers (if adoption warrants)</li>
+      </ul>
+      <h3>Workflow</h3>
+      <div class="flow">
+        <span class="step">Detect</span><span class="arrow">→</span>
+        <span class="step">Triage</span><span class="arrow">→</span>
+        <span class="step">Assess</span><span class="arrow">→</span>
+        <span class="step">Report</span><span class="arrow">→</span>
+        <span class="step">Act</span>
+      </div>
+      <ul>
+        <li>Rejected: one big pass (shallow, overruns context)</li>
+        <li>Rejected: fix everything on its own (breaks the anti-goals)</li>
+      </ul>
+      <h3>Report</h3>
+      <ul>
+        <li>Tiers: launch blockers → before you grow → polish</li>
+        <li>Status: done · partial · missing · can't verify</li>
+        <li>Who acts: agent fixes · agent checks · you do</li>
+      </ul>
+    </section>
+
+    <section class="phase deliver">
+      <h2>Deliver <span class="mode">narrow</span></h2>
+      <p class="q">What ships first, and how do we know it works?</p>
+      <h3>v1</h3>
+      <ul>
+        <li>Web app and macOS app checklists, plus an LLM-app overlay</li>
+        <li>Audits: Lighthouse, osv-scanner, gitleaks, HTTP Observatory, checkdmarc, codesign/spctl</li>
+        <li>Fixes one approved change at a time; MCP setups suggested, not automatic</li>
+        <li>Installs with <code>npx skills add</code> or a Claude Code marketplace</li>
+        <li>Bloom example report</li>
+      </ul>
+      <h3>Evals, written first</h3>
+      <ul>
+        <li><b>Bloom:</b> skips SEO and analytics for the right reasons; finds the notarization, tagging and update gaps</li>
+        <li><b>Next.js app with planted gaps:</b> finds them all</li>
+        <li><b>LLM app:</b> flags injection, fallback and token limits</li>
+        <li>Run in Claude Code and Codex</li>
+      </ul>
+    </section>
+  </div>
+
+  <footer>Full design: agent-skills/docs/superpowers/specs/2026-11-02-prodmate-design.md</footer>
+</div>
