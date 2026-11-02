@@ -11,4 +11,4 @@ Installs (`npx skills add`, the Claude Code plugin) read the repo's `main` branc
 3. **Ship it as a new patch version:** follow [releasing.md](../releasing.md) with the next patch number (never reuse or move an existing tag). Bumping the version is what makes Claude Code plugin users pick up the fix.
 4. **Tell people:** add a line to the release notes saying which version was bad and what to do, and mark the bad GitHub Release as a pre-release so "Latest" points at the fixed one.
 
-People who want to stay on an older version can install from a tag: `npx skills add https://github.com/s3anstanz/prodmate/tree/v<good-version>` (or copy `skills/prodmate` from that tag by hand).
+People who want to stay on an older version can install from a tag: `npx skills add https://github.com/s3anstanz/ProdMate/tree/v<good-version>` (or copy `skills/prodmate` from that tag by hand).

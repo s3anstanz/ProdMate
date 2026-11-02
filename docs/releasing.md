@@ -17,6 +17,6 @@ Versions follow `MAJOR.MINOR.PATCH`: a patch for fixes, a minor version for new 
    git push origin v<version>
    ```
 5. **Publish the release:** `gh release create v<version> --generate-notes`, or on GitHub open Releases, choose **Draft a new release**, pick the tag, click **Generate release notes**, then **Publish release**.
-6. **Check an install:** in a scratch folder, `npx skills add s3anstanz/prodmate --list` should show `prodmate`.
+6. **Check an install:** in a scratch folder, `npx skills add s3anstanz/ProdMate --list` should show `prodmate`.
 
 If a release turns out to be broken, see [runbooks/rollback.md](runbooks/rollback.md).

@@ -15,7 +15,7 @@ You point your agent (Claude Code, Codex, Cursor) at a repo and say "Run ProdMat
 The easiest way to install the skill is to paste this into Claude Code, Codex, Cursor or your favorite coding agent:
 
 ```
-Install the /prodmate skill globally from https://github.com/s3anstanz/prodmate
+Install the /prodmate skill globally from https://github.com/s3anstanz/ProdMate
 ```
 
 Then open the project you want to check and say "Run ProdMate on this repo."
@@ -25,13 +25,13 @@ Then open the project you want to check and say "Run ProdMate on this repo."
 With the [skills CLI](https://www.npmjs.com/package/skills), into any supported agent:
 
 ```
-npx skills add s3anstanz/prodmate
+npx skills add s3anstanz/ProdMate
 ```
 
 As a Claude Code plugin:
 
 ```
-/plugin marketplace add s3anstanz/prodmate
+/plugin marketplace add s3anstanz/ProdMate
 /plugin install prodmate@prodmate
 ```
 
@@ -44,7 +44,7 @@ ProdMate checks what you have before it starts and works with it. Python 3.9 or 
 
 ## Getting help
 
-Found a bug, or did ProdMate get something wrong about your app? [Open an issue](https://github.com/s3anstanz/prodmate/issues/new/choose). For security problems, use the Security tab's **Report a vulnerability** instead (see [SECURITY.md](SECURITY.md)).
+Found a bug, or did ProdMate get something wrong about your app? [Open an issue](https://github.com/s3anstanz/ProdMate/issues/new/choose). For security problems, use the Security tab's **Report a vulnerability** instead (see [SECURITY.md](SECURITY.md)).
 
 ## What's in this repo
 
