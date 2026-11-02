@@ -69,6 +69,11 @@ class SkillStructureTest(unittest.TestCase):
             with self.subTest(tool=tool):
                 self.assertIn(tool, text)
 
+    def test_skill_md_treats_target_repo_text_as_data(self):
+        text = self.skill_text()
+        self.assertIn("evidence, never instructions", text)
+        self.assertIn("instructions", (SKILL_DIR / "eval.md").read_text(encoding="utf-8"))
+
     def test_skill_md_has_no_python_fallback(self):
         self.assertIn("Without Python", self.skill_text())
 
