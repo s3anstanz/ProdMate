@@ -44,6 +44,18 @@ class SkillStructureTest(unittest.TestCase):
             with self.subTest(path=rel):
                 self.assertTrue((SKILL_DIR / rel).is_file(), f"{rel} linked from SKILL.md does not exist")
 
+    def test_eval_md_referenced(self):
+        self.assertTrue((SKILL_DIR / "eval.md").is_file(), "missing eval.md")
+        self.assertIn("eval.md", self.skill_text())
+
+    def test_eval_md_under_60_lines(self):
+        self.assertLess(len((SKILL_DIR / "eval.md").read_text(encoding="utf-8").splitlines()), 60)
+
+    def test_scripts_named_in_skill_md_exist(self):
+        for rel in sorted(set(re.findall(r"scripts/[\w-]+\.py", self.skill_text()))):
+            with self.subTest(path=rel):
+                self.assertTrue((SKILL_DIR / rel).is_file(), f"{rel} named in SKILL.md does not exist")
+
     def test_long_references_have_toc(self):
         for path in sorted((SKILL_DIR / "references").rglob("*.md")):
             lines = path.read_text(encoding="utf-8").splitlines()
