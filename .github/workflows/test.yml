@@ -16,6 +16,14 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         python: ["3.9", "3.x"]
+        # setup-python has no 3.9 build for the newest Ubuntu; test 3.9 on 24.04 instead.
+        # 3.9 stays because it's what macOS's built-in python3 ships.
+        exclude:
+          - os: ubuntu-latest
+            python: "3.9"
+        include:
+          - os: ubuntu-24.04
+            python: "3.9"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
