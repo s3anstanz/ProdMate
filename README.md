@@ -30,7 +30,7 @@ Or copy the folder by hand:
 - Claude Code: copy `skills/prodmate` to `.claude/skills/prodmate` in your repo (or `~/.claude/skills/prodmate` for every repo).
 - Codex, Cursor and other agents that read `.agents/skills/`: copy `skills/prodmate` to `.agents/skills/prodmate`.
 
-prodmate needs Python 3.9 or newer. The audit tools are optional: prodmate asks before running each one through `npx` or `pipx`, and marks an item "Can't verify" when a tool isn't available.
+prodmate checks what you have before it starts and works with it. Python 3.9 or newer makes it faster and more consistent (it runs prodmate's helper scripts); without it, the agent does the same steps by hand. The audit tools are optional too: prodmate explains what each one adds, asks before running any through `npx` or `pipx`, and marks an item "Can't verify" when a tool isn't there, with steps to check it yourself.
 
 ## Skills in this repo
 

@@ -1,4 +1,5 @@
 import re
+import sys
 import unittest
 from pathlib import Path
 
@@ -55,6 +56,21 @@ class SkillStructureTest(unittest.TestCase):
         for rel in sorted(set(re.findall(r"scripts/[\w-]+\.py", self.skill_text()))):
             with self.subTest(path=rel):
                 self.assertTrue((SKILL_DIR / rel).is_file(), f"{rel} named in SKILL.md does not exist")
+
+    def test_toolkit_reference_covers_every_tool(self):
+        toolkit = SKILL_DIR / "references" / "toolkit.md"
+        self.assertTrue(toolkit.is_file(), "missing references/toolkit.md")
+        self.assertIn("references/toolkit.md", self.skill_text())
+        text = toolkit.read_text(encoding="utf-8")
+        sys.path.insert(0, str(SKILL_DIR / "scripts"))
+        import audits
+
+        for tool in ["python3", "git", "gh", "npx", "Chrome", "pipx", *audits.AUDITS]:
+            with self.subTest(tool=tool):
+                self.assertIn(tool, text)
+
+    def test_skill_md_has_no_python_fallback(self):
+        self.assertIn("Without Python", self.skill_text())
 
     def test_long_references_have_toc(self):
         for path in sorted((SKILL_DIR / "references").rglob("*.md")):

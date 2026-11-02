@@ -26,10 +26,11 @@ Statuses are exactly **Done · Partial · Missing · Can't verify** (plus Not ap
 
 ## Phase 1: Detect
 
+0. **Toolkit check.** Before anything else, see which tools the person has, following `references/toolkit.md`. It's read-only. Missing tools never block the run: each one lowers what you can check, and you say exactly what. **Without Python**, the helper scripts can't run; follow that file's "Without Python" steps and do the same work by hand.
 1. Run `python3 scripts/detect.py <repo>`. It prints JSON: git facts, one entry per app (`path`, `types`, `evidence`, `stack`, `lockfiles`, `deploy`), `overlays`, `promises` (file, line, text) and `ci`.
 2. Read the README and the main entry points to confirm the types. detect.py reads manifests only; correct it when the code says otherwise and say why in the report (e.g. a `library` that's really a terminal tutorial, or `unknown` for a repo of prompt files).
 3. Read each `promises` line in context. Keep only real product promises ("never touches the network", "nothing leaves your machine", "no analytics"); drop matches that are rules for contributors or agents.
-4. Ask only what the code can't answer, in **one message**, together with the consent question from Rule 5:
+4. Ask only what the code can't answer, in **one message**, together with the toolkit summary and the "how comfortable are you" question from `references/toolkit.md`, and the consent question from Rule 5:
    - Is it live? If so, what's the URL?
    - Is it public (for other people) or personal (only you, never launching)?
    - Does it send email? (Only ask when the code doesn't make it obvious.)
