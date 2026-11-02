@@ -32,10 +32,6 @@ Or copy the folder by hand:
 
 prodmate needs Python 3.9 or newer. The audit tools are optional: prodmate asks before running each one through `npx` or `pipx`, and marks an item "Can't verify" when a tool isn't available.
 
-## Tested on
-
-Web apps (Next.js, static sites), a macOS app (Bloom), API and LLM apps, a terminal tutorial and a prompt-only agent, in Claude Code and Codex.
-
 ## Skills in this repo
 
 - [`prodmate`](skills/prodmate/SKILL.md): checks whether an app is ready for production launch, and helps close the gaps.
