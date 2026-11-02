@@ -19,7 +19,7 @@ from xml.parsers.expat import ExpatError
 MAX_DEPTH = 3
 IGNORED_DIRS = {
     "node_modules", ".git", ".build", "build", "dist", ".next", "out", "vendor", ".venv", "venv",
-    "__pycache__", "target", "DerivedData", "Pods", ".claude", ".agents", ".cursor",
+    "__pycache__", "target", "DerivedData", "Pods", ".claude", ".agents", ".cursor", "examples",
 }
 ROOT_MARKERS = {
     "package.json", "Package.swift", "pyproject.toml", "requirements.txt", "Cargo.toml",
@@ -37,6 +37,7 @@ DEPLOY_FILES = [
 WEB_DEPS = {"next", "react-dom", "vue", "svelte", "@sveltejs/kit", "astro", "nuxt", "@remix-run/react", "vite"}
 API_DEPS = {"express", "fastify", "hono", "koa", "@nestjs/core", "fastapi", "flask", "django"}
 MOBILE_DEPS = {"expo", "react-native"}
+PLATFORM_DIRS = {"ios", "android", "macos", "windows", "linux", "web"}
 LLM_DEPS = {
     "openai", "anthropic", "@anthropic-ai/sdk", "ai", "llamaindex", "google-generativeai",
     "@google/genai", "ollama", "cohere", "mistralai", "groq-sdk",
@@ -58,14 +59,41 @@ def read(path):
         return ""
 
 
-def walk(root, max_depth):
-    """Yield (dir, dirnames, filenames) under root, skipping ignored dirs, up to max_depth levels."""
+def walk(root, max_depth, skip=()):
+    """Yield (dir, dirnames, filenames) under root up to max_depth levels.
+
+    Skips ignored dirs, every dot-directory (worktree copies, caches, build output) and any dir in `skip`.
+    """
     for current, dirnames, filenames in os.walk(root):
         depth = len(Path(current).relative_to(root).parts)
-        dirnames[:] = sorted(d for d in dirnames if d not in IGNORED_DIRS)
+        dirnames[:] = sorted(
+            d for d in dirnames
+            if d not in IGNORED_DIRS and not d.startswith(".") and Path(current, d) not in skip
+        )
         if depth >= max_depth:
             dirnames[:] = []
         yield Path(current), dirnames, filenames
+
+
+def git_ignored(repo, paths):
+    """Return the subset of paths that git ignores in repo (empty when repo isn't a git repo)."""
+    if not paths:
+        return set()
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(repo), "check-ignore", "--stdin"],
+            input="\n".join(str(p) for p in paths), capture_output=True, text=True, timeout=30,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return set()
+    return {Path(line) for line in proc.stdout.splitlines() if line.strip()}
+
+
+def is_cross_platform_root(path):
+    pkg = load_package_json(path) or {}
+    deps = js_deps(pkg)
+    pubspec = path / "pubspec.yaml"
+    return bool(MOBILE_DEPS & deps.keys()) or (pubspec.is_file() and re.search(r"(?m)^\s*flutter:", read(pubspec)))
 
 
 def find_app_roots(repo):
@@ -75,7 +103,15 @@ def find_app_roots(repo):
             continue
         if ROOT_MARKERS.intersection(filenames) or any(d.endswith(".xcodeproj") for d in dirnames):
             roots.append(current)
-    return roots
+    ignored = git_ignored(repo, roots[1:])
+    roots = [r for r in roots if r not in ignored]
+    # ios/, android/, macos/ ... under a React Native, Expo or Flutter app belong to that app.
+    keep = []
+    for root in roots:
+        if root != repo and root.name in PLATFORM_DIRS and root.parent in roots and is_cross_platform_root(root.parent):
+            continue
+        keep.append(root)
+    return keep
 
 
 def load_package_json(app):
@@ -138,15 +174,15 @@ def is_llm_dep(name):
     return name in LLM_DEPS or name.startswith(LLM_PREFIXES)
 
 
-def find_files(app, name_pattern, max_depth=4):
-    for current, _dirnames, filenames in walk(app, max_depth):
+def find_files(app, name_pattern, max_depth=4, skip=()):
+    for current, _dirnames, filenames in walk(app, max_depth, skip):
         for filename in filenames:
             if re.fullmatch(name_pattern, filename):
                 yield current / filename
 
 
-def pbxproj_files(app):
-    for current, dirnames, _filenames in walk(app, 2):
+def pbxproj_files(app, skip=()):
+    for current, dirnames, _filenames in walk(app, 2, skip):
         for d in dirnames:
             if d.endswith(".xcodeproj"):
                 path = current / d / "project.pbxproj"
@@ -163,7 +199,7 @@ def plist_is_app(path):
     return isinstance(data, dict) and data.get("CFBundlePackageType") == "APPL"
 
 
-def classify(repo, app, pages_workflows=()):
+def classify(repo, app, pages_workflows=(), other_roots=()):
     rel = lambda p: p.relative_to(repo).as_posix()
     types, evidence, stack = [], [], []
     pkg = load_package_json(app)
@@ -173,13 +209,14 @@ def classify(repo, app, pages_workflows=()):
     deps.update(python_deps(app))
     package_swift = app / "Package.swift"
     swift_text = read(package_swift) if package_swift.is_file() else ""
-    pbx = {path: read(path) for path in pbxproj_files(app)}
+    skip = {r for r in other_roots if r != app}
+    pbx = {path: read(path) for path in pbxproj_files(app, skip)}
 
     # macos-app
     macos = False
     macos_platform = re.search(r"\.macOS\([^)]*\)", swift_text)
     if macos_platform:
-        for plist in find_files(app, r"Info\.plist"):
+        for plist in find_files(app, r"Info\.plist", skip=skip):
             if plist_is_app(plist):
                 macos = True
                 evidence += [f"{rel(package_swift)}: {macos_platform.group(0)}", f"{rel(plist)}: CFBundlePackageType APPL"]
@@ -326,8 +363,9 @@ def detect(repo):
         {p.relative_to(repo).as_posix() for p in workflows if "deploy" in p.name} | set(pages_workflows)
     )
     apps, overlays = [], []
-    for root in find_app_roots(repo):
-        info = classify(repo, root, pages_workflows)
+    roots = find_app_roots(repo)
+    for root in roots:
+        info = classify(repo, root, pages_workflows, roots)
         path = root.relative_to(repo).as_posix() or "."
         if not info["types"]:
             continue

@@ -63,7 +63,7 @@ Never mark an item Done from an audit that didn't return `ok`.
 - **Needs:** the repo on disk. On a git repo it scans the history and the current files.
 - **Ask first:** only to install it (PATH tool: `brew install gitleaks`).
 - **Run:** `python3 scripts/audits.py run gitleaks <repo>`. It always runs with `--redact`; results never contain a secret value. Never print, quote or log a secret's value yourself, even when you open the file to check a finding: cite `file:line` and the rule name.
-- **Read:** every finding is high until you check it. Open the file at that line and decide:
+- **Read:** every finding is high until you check it. A finding whose location says `(commit <sha>)` is in **git history**: the line may look safe today because the secret was removed later, but anyone with the repo can still read it. Judge it by its rule, file and commit; if it looks like a real key, it's Missing and needs `common.leaked-key-rotation`. Don't run `git show` on it, which would print the value. For a finding with no commit, open the file at that line and decide:
   - a real secret (a server key, a password, a token that grants access) → Missing
   - publishable by design (Supabase anon or publishable key, Stripe `pk_` key, Firebase web config, a JWT whose payload role is `anon`) → not a leak. Check the protection behind it (e.g. row-level security on Supabase tables) and report that instead.
   - a test fixture or example value that grants nothing → not a leak; say why.

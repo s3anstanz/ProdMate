@@ -71,7 +71,8 @@ OSV_LOCKFILES = [
     "package-lock.json", "pnpm-lock.yaml", "yarn.lock", "bun.lock", "poetry.lock", "uv.lock", "Pipfile.lock",
     "requirements.txt", "Cargo.lock", "go.mod", "Package.resolved", "Gemfile.lock", "composer.lock", "pubspec.lock",
 ]
-LIGHTHOUSE_CATEGORIES ="performance,accessibility,best-practices,seo"
+COPY_DIRS = {".worktrees", "node_modules"}
+LIGHTHOUSE_CATEGORIES = "performance,accessibility,best-practices,seo"
 LAUNCHERS = {"npx": ["npx", "--yes"], "pipx": ["pipx", "run"]}
 
 
@@ -96,12 +97,19 @@ def parse_lighthouse(reports):
     titles = {}
     url = ""
     for report in reports:
+        if not isinstance(report, dict) or not isinstance(report.get("categories", {}), dict):
+            raise AuditError("lighthouse printed JSON that isn't a Lighthouse report")
         url = report.get("finalDisplayedUrl") or report.get("requestedUrl") or url
         for key, category in report.get("categories", {}).items():
             titles[key] = category.get("title", key)
             if category.get("score") is not None:
                 scores.setdefault(key, []).append(category["score"])
-    findings = []
+    if not scores:
+        return result("lighthouse", "error", "lighthouse returned no category scores, so nothing was measured")
+    findings = [
+        {"severity": "info", "message": f"{titles[key]}: no score (Lighthouse couldn't measure it)", "location": url}
+        for key in sorted(set(titles) - set(scores))
+    ]
     parts = []
     for key in sorted(scores):
         median = statistics.median(scores[key])
@@ -118,7 +126,8 @@ def parse_lighthouse(reports):
             "location": url,
         })
     summary = f"Lighthouse median of {len(reports)} runs: " + ", ".join(parts)
-    return result("lighthouse", "issues" if findings else "ok", summary, findings)
+    serious = [f for f in findings if f["severity"] != "info"]
+    return result("lighthouse", "issues" if serious else "ok", summary, findings)
 
 
 def cvss_severity(score):
@@ -161,7 +170,13 @@ def parse_gitleaks(data):
     findings = []
     for leak in data:
         location = f"{leak.get('File', '?')}:{leak.get('StartLine', '?')}"
-        findings.append({"severity": "high", "message": f"{leak.get('RuleID', 'secret')} in {location}", "location": location})
+        message = f"{leak.get('RuleID', 'secret')} in {location}"
+        commit = leak.get("Commit") or ""
+        if commit:
+            # In history: the line may look safe today, so name the commit (never the value).
+            location += f" (commit {commit[:8]})"
+            message += f", in git history (commit {commit[:8]})"
+        findings.append({"severity": "high", "message": message, "location": location})
     if not findings:
         return result("gitleaks", "ok", "gitleaks found no secrets")
     return result("gitleaks", "issues", f"gitleaks found {len(findings)} possible secrets (values redacted)", findings)
@@ -252,7 +267,7 @@ def command_prefix(name, allow_install):
 
 def execute(name, argv, timeout, ok_codes=(0,)):
     try:
-        proc = subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
+        proc = subprocess.run(argv, capture_output=True, text=True, errors="replace", timeout=timeout)
     except subprocess.TimeoutExpired:
         raise AuditError(f"{name} timed out after {timeout}s")
     except OSError as exc:
@@ -271,6 +286,8 @@ def load_json(name, text):
 
 
 def run_lighthouse(prefix, target, runs, timeout):
+    if runs < 1:
+        raise AuditError("lighthouse needs at least 1 run (--runs)")
     reports = []
     for _ in range(runs):
         argv = prefix + [target, "--output=json", "--quiet", "--chrome-flags=--headless=new", f"--only-categories={LIGHTHOUSE_CATEGORIES}"]
@@ -280,7 +297,7 @@ def run_lighthouse(prefix, target, runs, timeout):
 
 def osv_call(argv, timeout):
     try:
-        proc = subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
+        proc = subprocess.run(argv, capture_output=True, text=True, errors="replace", timeout=timeout)
     except subprocess.TimeoutExpired:
         raise AuditError(f"osv-scanner timed out after {timeout}s")
     except OSError as exc:
@@ -310,7 +327,7 @@ def run_osv(prefix, target, timeout):
 
 def is_git_repo(path):
     try:
-        proc = subprocess.run(["git", "-C", path, "rev-parse", "--is-inside-work-tree"], capture_output=True, text=True, timeout=30)
+        proc = subprocess.run(["git", "-C", path, "rev-parse", "--is-inside-work-tree"], capture_output=True, text=True, errors="replace", timeout=30)
     except (OSError, subprocess.SubprocessError):
         return False
     return proc.returncode == 0 and proc.stdout.strip() == "true"
@@ -334,18 +351,29 @@ def run_gitleaks(prefix, target, timeout):
     # `gitleaks git` reads only commits, so a git repo also gets a `dir` scan for uncommitted files.
     modes = ["git", "dir"] if is_git_repo(target) else ["dir"]
     leaks, seen = [], set()
+    root = os.path.normpath(os.path.abspath(target))
     for mode in modes:
         for leak in gitleaks_scan(prefix, mode, target, timeout):
-            key = (leak.get("RuleID"), os.path.normpath(os.path.join(target, leak.get("File", ""))), leak.get("StartLine"))
+            full = os.path.normpath(os.path.join(root, leak.get("File", "")))
+            rel = os.path.relpath(full, root) if full.startswith(root + os.sep) else full
+            # `dir` mode also reads in-repo copies (agent worktrees, installed packages): not this app's code.
+            if any(part in COPY_DIRS for part in Path(rel).parts) or "/.claude/worktrees/" in f"/{rel}":
+                continue
+            key = (leak.get("RuleID"), rel, leak.get("StartLine"))
             if key not in seen:
                 seen.add(key)
-                leaks.append(leak)
+                leaks.append(dict(leak, File=rel))
     return parse_gitleaks(leaks)
 
 
 def run_codesign(target, timeout):
-    codesign = subprocess.run(["codesign", "-vvv", "--deep", "--strict", target], capture_output=True, text=True, timeout=timeout)
-    spctl = subprocess.run(["spctl", "-vvv", "--assess", "--type", "exec", target], capture_output=True, text=True, timeout=timeout)
+    if not Path(target).exists():
+        raise AuditError(f"App not found: {target}; build it first or pass the path to the .app bundle")
+    try:
+        codesign = subprocess.run(["codesign", "-vvv", "--deep", "--strict", target], capture_output=True, text=True, errors="replace", timeout=timeout)
+        spctl = subprocess.run(["spctl", "-vvv", "--assess", "--type", "exec", target], capture_output=True, text=True, errors="replace", timeout=timeout)
+    except OSError as exc:
+        raise AuditError(f"codesign could not start: {exc.strerror or exc}")
     return parse_codesign(codesign.returncode, codesign.stdout + codesign.stderr, spctl.returncode, spctl.stdout + spctl.stderr)
 
 
@@ -375,6 +403,8 @@ def run(name, target, allow_install=False, runs=3, timeout=300):
             return parse_checkdmarc(load_json(name, execute(name, prefix + [target], timeout).stdout))
     except AuditError as exc:
         return result(name, "error", str(exc))
+    except Exception as exc:  # last resort: an audit must never crash the run (Review Focus 4)
+        return result(name, "error", f"{name} failed unexpectedly: {type(exc).__name__}: {one_line(str(exc))}")
     return result(name, "error", f"no runner for '{name}'")
 
 

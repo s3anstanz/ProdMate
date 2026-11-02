@@ -79,6 +79,27 @@ class ParserTest(unittest.TestCase):
             for value in (record["Secret"], record["Match"]):
                 self.assertNotIn(value, dumped)
 
+    def test_parse_gitleaks_history_finding_names_the_commit(self):
+        data = copy.deepcopy(load("gitleaks.json"))[:1]
+        data[0]["Commit"] = "0123456789abcdef0123"
+        result = audits.parse_gitleaks(data)
+        finding = result["findings"][0]
+        self.assertIn("commit 01234567", finding["location"])
+        self.assertIn("git history", finding["message"])
+
+    def test_parse_lighthouse_with_no_scores_is_error(self):
+        report = copy.deepcopy(load("lighthouse.json"))
+        for category in report["categories"].values():
+            category["score"] = None
+        result = audits.parse_lighthouse([report])
+        self.assertEqual(result["status"], "error")
+
+    def test_parse_lighthouse_null_category_is_reported(self):
+        report = copy.deepcopy(load("lighthouse.json"))
+        report["categories"]["seo"]["score"] = None
+        result = audits.parse_lighthouse([report])
+        self.assertTrue([f for f in result["findings"] if "SEO" in f["message"] and "no score" in f["message"]])
+
     def test_parse_observatory_grade(self):
         result = audits.parse_observatory(load("observatory.json"))
         self.assertEqual(result["status"], "ok")
@@ -215,6 +236,53 @@ class RunTest(unittest.TestCase):
         self.assertEqual(sorted(modes), ["dir", "git"])
         self.assertEqual(result["status"], "issues")
         self.assertEqual(len(result["findings"]), 1)
+
+    def test_lighthouse_zero_runs_is_error(self):
+        with mock.patch.object(audits.shutil, "which", return_value="/usr/local/bin/lighthouse"), \
+                mock.patch.object(audits.subprocess, "run") as run:
+            result = audits.run("lighthouse", "https://example.com", runs=0)
+        self.assertEqual(result["status"], "error")
+        run.assert_not_called()
+
+    def test_non_dict_lighthouse_json_is_error_not_crash(self):
+        weird = subprocess.CompletedProcess(args=[], returncode=0, stdout="[1, 2]", stderr="")
+        with mock.patch.object(audits.shutil, "which", return_value="/usr/local/bin/lighthouse"), \
+                mock.patch.object(audits.subprocess, "run", return_value=weird):
+            result = audits.run("lighthouse", "https://example.com", runs=1)
+        self.assertEqual(result["status"], "error")
+        self.assertEqual(len(result["summary"].splitlines()), 1)
+
+    def test_codesign_missing_app_is_error(self):
+        with mock.patch.object(audits.sys, "platform", "darwin"):
+            result = audits.run("codesign", "/repo/does/not/exist/App.app")
+        self.assertEqual(result["status"], "error")
+        self.assertIn("not found", result["summary"])
+
+    def test_codesign_oserror_is_error_not_crash(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as app, \
+                mock.patch.object(audits.sys, "platform", "darwin"), \
+                mock.patch.object(audits.subprocess, "run", side_effect=OSError(2, "No such file or directory")):
+            result = audits.run("codesign", app)
+        self.assertEqual(result["status"], "error")
+
+    def test_gitleaks_drops_findings_in_worktree_copies(self):
+        leaks = copy.deepcopy(load("gitleaks.json"))[:1]
+        copy_leak = copy.deepcopy(leaks[0])
+        copy_leak["File"] = "/repo/.claude/worktrees/copy/lib/config.ts"
+        leaks[0]["File"] = "/repo/lib/config.ts"
+
+        def fake_run(argv, **kwargs):
+            report = argv[argv.index("--report-path") + 1]
+            Path(report).write_text(json.dumps(leaks + [copy_leak]))
+            return subprocess.CompletedProcess(args=argv, returncode=0, stdout="", stderr="")
+
+        with mock.patch.object(audits.shutil, "which", return_value="/usr/local/bin/gitleaks"), \
+                mock.patch.object(audits, "is_git_repo", return_value=False), \
+                mock.patch.object(audits.subprocess, "run", side_effect=fake_run):
+            result = audits.run("gitleaks", "/repo")
+        self.assertEqual([f["location"] for f in result["findings"]], ["lib/config.ts:3"])
 
     def test_codesign_skipped_off_macos(self):
         with mock.patch.object(audits.sys, "platform", "linux"):

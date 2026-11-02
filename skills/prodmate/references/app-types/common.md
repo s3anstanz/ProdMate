@@ -105,7 +105,7 @@ Loaded for every app type. Each item lists when it applies, what counts as done,
 ### common.error-tracking
 - tier: grow
 - why: Error tracking tells you about crashes your users hit but never report.
-- applies-when: the app is meant for people other than its author. Not applicable when the app promises no network, no tracking or no telemetry; the reason quotes the promise.
+- applies-when: the app is meant for people other than its author. Under a no-network, no-tracking or no-telemetry promise it still applies, but only the local, user-initiated option below may be recommended; quote the promise.
 - check: Done when an error-tracking setup exists in code (e.g. a Sentry SDK init, or a local crash-report flow) and is wired up for production. Missing when none exists.
 - agent-fix: for apps with no privacy promise, add the SDK init for a tracker the user picks, reading its DSN from an environment variable; never suggest a hosted service to an app that promises no network or no tracking. For those, the only option is local and user-initiated: e.g. a "Report a problem" action that attaches the OS crash log to an email or a GitHub issue the user sends themselves.
 - audit: none

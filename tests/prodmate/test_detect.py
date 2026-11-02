@@ -93,6 +93,41 @@ class DetectTest(unittest.TestCase):
         result = detect.detect(self.tmpdir)
         self.assertEqual([p["line"] for p in result["promises"]], [3])
 
+    def make(self, rel, text=""):
+        path = self.tmpdir / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+        return path
+
+    def test_react_native_ios_folder_is_part_of_the_app(self):
+        self.make("package.json", '{"dependencies": {"react-native": "0.76.0"}}')
+        self.make("ios/App.xcodeproj/project.pbxproj", "SDKROOT = iphoneos;")
+        self.make("android/build.gradle", "")
+        result = detect.detect(self.tmpdir)
+        self.assertEqual([(a["path"], a["types"]) for a in result["apps"]], [(".", ["ios-android"])])
+
+    def test_flutter_platform_folders_are_part_of_the_app(self):
+        self.make("pubspec.yaml", "name: app\nflutter:\n  uses-material-design: true\n")
+        self.make("ios/Runner.xcodeproj/project.pbxproj", "SDKROOT = iphoneos;")
+        self.make("macos/Runner.xcodeproj/project.pbxproj", "SDKROOT = macosx;")
+        result = detect.detect(self.tmpdir)
+        self.assertEqual([a["path"] for a in result["apps"]], ["."])
+        self.assertIn("ios-android", result["apps"][0]["types"])
+
+    def test_xcode_project_in_subfolder_is_one_app(self):
+        self.make("Mac/Mac.xcodeproj/project.pbxproj", "SDKROOT = macosx;")
+        result = detect.detect(self.tmpdir)
+        self.assertEqual([(a["path"], a["types"]) for a in result["apps"]], [("Mac", ["macos-app"])])
+
+    def test_ignores_dot_dirs_examples_and_git_ignored_dirs(self):
+        self.make("package.json", '{"dependencies": {"next": "15.0.0"}}')
+        for rel in (".worktrees/feat", ".output/server", ".yarn/sdks/typescript", "examples/demo", "generated/site"):
+            self.make(f"{rel}/package.json", '{"dependencies": {"next": "15.0.0"}, "main": "x.js"}')
+        self.make(".gitignore", "generated/\n")
+        subprocess.run(["git", "-C", str(self.tmpdir), "init", "-q"], check=True)
+        result = detect.detect(self.tmpdir)
+        self.assertEqual([a["path"] for a in result["apps"]], ["."])
+
     def test_no_git_no_readme(self):
         (self.tmpdir / "package.json").write_text('{"bin": "x"}')
         result = detect.detect(self.tmpdir)
