@@ -45,6 +45,7 @@ LLM_PREFIXES = ("@ai-sdk/", "langchain", "@langchain/")
 PROMISE_FILES = re.compile(r"^(README.*|AGENTS\.md|CLAUDE\.md|PRIVACY.*|SECURITY\.md)$", re.IGNORECASE)
 PROMISE = re.compile(
     r"no network|never touches the network|offline|no analytics|no tracking|no telemetry|never uploads"
+    r"|nothing (leaves|is sent)|stays on your (machine|device|computer|mac)"
     r"|(does not|doesn't|never) (collect|track|upload|send)|local[- ]only|no third-party",
     re.IGNORECASE,
 )
@@ -162,7 +163,7 @@ def plist_is_app(path):
     return isinstance(data, dict) and data.get("CFBundlePackageType") == "APPL"
 
 
-def classify(repo, app):
+def classify(repo, app, pages_workflows=()):
     rel = lambda p: p.relative_to(repo).as_posix()
     types, evidence, stack = [], [], []
     pkg = load_package_json(app)
@@ -216,6 +217,9 @@ def classify(repo, app):
     elif pkg is None and (app / "index.html").is_file():
         types.append("web-app")
         evidence.append(f"{rel(app / 'index.html')}: static site")
+    elif pages_workflows and any(app.glob("*.html")):
+        types.append("web-app")
+        evidence.append(f"{rel(app)}: HTML pages, deployed by {pages_workflows[0]}")
 
     # api-backend
     api = sorted(API_DEPS & deps.keys())
@@ -313,12 +317,17 @@ def find_ci(repo):
 
 def detect(repo):
     repo = Path(repo).resolve()
+    workflows = sorted((repo / ".github" / "workflows").glob("*.y*ml"))
+    pages_workflows = [
+        p.relative_to(repo).as_posix() for p in workflows
+        if re.search(r"actions/(deploy-pages|upload-pages-artifact)", read(p))
+    ]
     workflow_deploys = sorted(
-        p.relative_to(repo).as_posix() for p in (repo / ".github" / "workflows").glob("*deploy*")
+        {p.relative_to(repo).as_posix() for p in workflows if "deploy" in p.name} | set(pages_workflows)
     )
     apps, overlays = [], []
     for root in find_app_roots(repo):
-        info = classify(repo, root)
+        info = classify(repo, root, pages_workflows)
         path = root.relative_to(repo).as_posix() or "."
         if not info["types"]:
             continue

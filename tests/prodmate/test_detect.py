@@ -66,6 +66,33 @@ class DetectTest(unittest.TestCase):
         result = detect.detect(FIXTURES / "static-site")
         self.assertEqual(result["apps"][0]["types"], ["web-app"])
 
+    def test_static_site_built_for_github_pages(self):
+        course = self.tmpdir / "course"
+        course.mkdir()
+        (course / "package.json").write_text('{"devDependencies": {"playwright": "1.50.0"}}')
+        (course / "template.html").write_text("<!doctype html><title>Course</title>")
+        workflows = self.tmpdir / ".github" / "workflows"
+        workflows.mkdir(parents=True)
+        (workflows / "pages.yml").write_text("jobs:\n  deploy:\n    steps:\n      - uses: actions/deploy-pages@v4\n")
+        result = detect.detect(self.tmpdir)
+        apps = {app["path"]: app for app in result["apps"]}
+        self.assertEqual(apps["course"]["types"], ["web-app"])
+        self.assertIn(".github/workflows/pages.yml", apps["course"]["deploy"])
+
+    def test_html_without_pages_deploy_is_not_web_app(self):
+        tool = self.tmpdir / "tool"
+        tool.mkdir()
+        (tool / "package.json").write_text('{"bin": "tool"}')
+        (tool / "report.html").write_text("<!doctype html>")
+        result = detect.detect(self.tmpdir)
+        self.assertEqual(result["apps"][0]["types"], ["cli"])
+
+    def test_nothing_leaves_your_machine_is_a_promise(self):
+        (self.tmpdir / "package.json").write_text('{"bin": "x"}')
+        (self.tmpdir / "README.md").write_text("# X\n\nA local dashboard. Nothing leaves your machine.\n")
+        result = detect.detect(self.tmpdir)
+        self.assertEqual([p["line"] for p in result["promises"]], [3])
+
     def test_no_git_no_readme(self):
         (self.tmpdir / "package.json").write_text('{"bin": "x"}')
         result = detect.detect(self.tmpdir)
