@@ -6,8 +6,6 @@ ProdMate runs inside your coding agent and can run commands in the repo you poin
 
 Please report security problems privately, not in a public issue: on GitHub, open this repo's **Security** tab and click **Report a vulnerability**. Include what you ran, what happened, and the agent and version you used. Don't include real secrets; describe them instead.
 
-You'll get a reply within a week. Fixes ship as a new release, with credit if you'd like it.
-
 ## What counts
 
 - ProdMate running something, installing something or changing files without asking first
