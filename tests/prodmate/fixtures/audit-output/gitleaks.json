@@ -1,0 +1,42 @@
+[
+ {
+  "RuleID": "generic-api-key",
+  "Description": "Detected a Generic API Key, potentially exposing access to various services and sensitive operations.",
+  "StartLine": 3,
+  "EndLine": 3,
+  "StartColumn": 15,
+  "EndColumn": 78,
+  "Match": "PAYMENTS_API_SECRET = \"REDACTED\"",
+  "Secret": "REDACTED",
+  "File": "/repo/lib/config.ts",
+  "SymlinkFile": "",
+  "Commit": "",
+  "Entropy": 4.803056,
+  "Author": "",
+  "Email": "",
+  "Date": "",
+  "Message": "",
+  "Tags": [],
+  "Fingerprint": "/repo/lib/config.ts:generic-api-key:3"
+ },
+ {
+  "RuleID": "jwt",
+  "Description": "Uncovered a JSON Web Token, which may lead to unauthorized access to web applications and sensitive user data.",
+  "StartLine": 8,
+  "EndLine": 8,
+  "StartColumn": 5,
+  "EndColumn": 137,
+  "Match": "REDACTED\"",
+  "Secret": "REDACTED",
+  "File": "/repo/lib/supabase.ts",
+  "SymlinkFile": "",
+  "Commit": "",
+  "Entropy": 5.311847,
+  "Author": "",
+  "Email": "",
+  "Date": "",
+  "Message": "",
+  "Tags": [],
+  "Fingerprint": "/repo/lib/supabase.ts:jwt:8"
+ }
+]

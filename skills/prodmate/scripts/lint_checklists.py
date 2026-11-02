@@ -12,6 +12,8 @@ import re
 import sys
 from pathlib import Path
 
+from audits import AUDITS
+
 FIELDS = ("tier", "why", "applies-when", "check", "agent-fix", "audit", "you-do")
 TIERS = {"blocker", "grow", "polish"}
 PREFIXES = {
@@ -20,7 +22,7 @@ PREFIXES = {
     "macos-app.md": "macos.",
     "llm-app.md": "llm.",
 }
-KNOWN_AUDITS = {"lighthouse", "osv-scanner", "gitleaks", "http-observatory", "checkdmarc", "codesign"}
+KNOWN_AUDITS = set(AUDITS.keys())
 
 HEADING = re.compile(r"^###\s+(\S+)\s*$")
 FIELD = re.compile(r"^-\s+([a-z-]+):\s*(.*)$")

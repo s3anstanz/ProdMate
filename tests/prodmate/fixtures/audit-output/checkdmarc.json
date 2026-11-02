@@ -1,0 +1,623 @@
+{
+  "domain": "github.com",
+  "base_domain": "github.com",
+  "dnssec": false,
+  "soa": {
+    "record": "ns-1707.awsdns-21.co.uk. awsdns-hostmaster.amazon.com. 1 7200 900 1209600 86400",
+    "values": {
+      "primary_nameserver": "ns-1707.awsdns-21.co.uk",
+      "rname_email_address": "awsdns-hostmaster@amazon.com",
+      "serial": 1,
+      "refresh": 7200,
+      "retry": 900,
+      "expire": 1209600,
+      "minimum": 86400
+    }
+  },
+  "ns": {
+    "hostnames": [
+      "dns1.p08.nsone.net",
+      "dns2.p08.nsone.net",
+      "dns3.p08.nsone.net",
+      "dns4.p08.nsone.net",
+      "ns-1283.awsdns-32.org",
+      "ns-1707.awsdns-21.co.uk",
+      "ns-421.awsdns-52.com",
+      "ns-520.awsdns-01.net"
+    ],
+    "warnings": []
+  },
+  "mx": {
+    "hosts": [
+      {
+        "preference": 0,
+        "hostname": "github-com.mail.protection.outlook.com",
+        "addresses": [
+          "2a01:111:f403:c92c::",
+          "2a01:111:f403:c946::10",
+          "2a01:111:f403:c946::12",
+          "2a01:111:f403:c95d::8",
+          "52.101.10.18",
+          "52.101.41.122",
+          "52.101.8.71",
+          "52.101.9.90"
+        ],
+        "dnssec": false
+      }
+    ],
+    "warnings": []
+  },
+  "mta_sts": {
+    "valid": false,
+    "error": "An MTA-STS DNS record does not exist.",
+    "warnings": []
+  },
+  "spf": {
+    "record": "v=spf1 ip4:192.30.252.0/22 include:spf.protection.outlook.com include:_netblocks.google.com include:_netblocks2.google.com include:mail.zendesk.com include:_spf.salesforce.com include:servers.mcsv.net include:mktomail.com include:sendgrid.net ip4:62.253.227.114 ip4:166.78.69.169 ip4:166.78.69.170 ip4:166.78.71.131 ~all",
+    "valid": true,
+    "dns_lookups": 10,
+    "void_dns_lookups": 0,
+    "warnings": [],
+    "parsed": {
+      "mechanisms": [
+        {
+          "action": "pass",
+          "mechanism": "ip4",
+          "value": "192.30.252.0/22"
+        },
+        {
+          "action": "pass",
+          "mechanism": "include",
+          "value": "spf.protection.outlook.com",
+          "dns_lookups": 1,
+          "void_dns_lookups": 0,
+          "record": "v=spf1 ip4:40.92.0.0/15 ip4:40.107.0.0/16 ip4:52.100.0.0/15 ip4:52.102.0.0/16 ip4:52.103.0.0/17 ip4:104.47.0.0/17 ip6:2a01:111:f400::/48 ip6:2a01:111:f403::/49 ip6:2a01:111:f403:8000::/51 ip6:2a01:111:f403:c000::/51 ip6:2a01:111:f403:f000::/52 -all",
+          "parsed": {
+            "mechanisms": [
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "40.92.0.0/15"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "40.107.0.0/16"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "52.100.0.0/15"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "52.102.0.0/16"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "52.103.0.0/17"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "104.47.0.0/17"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip6",
+                "value": "2a01:111:f400::/48"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip6",
+                "value": "2a01:111:f403::/49"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip6",
+                "value": "2a01:111:f403:8000::/51"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip6",
+                "value": "2a01:111:f403:c000::/51"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip6",
+                "value": "2a01:111:f403:f000::/52"
+              }
+            ],
+            "redirect": null,
+            "exp": null,
+            "ra": null,
+            "rp": null,
+            "rr": null,
+            "all": "fail"
+          },
+          "warnings": []
+        },
+        {
+          "action": "pass",
+          "mechanism": "include",
+          "value": "_netblocks.google.com",
+          "dns_lookups": 1,
+          "void_dns_lookups": 0,
+          "record": "v=spf1 ip4:74.125.0.0/16 ip4:209.85.128.0/17 ~all",
+          "parsed": {
+            "mechanisms": [
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "74.125.0.0/16"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "209.85.128.0/17"
+              }
+            ],
+            "redirect": null,
+            "exp": null,
+            "ra": null,
+            "rp": null,
+            "rr": null,
+            "all": "softfail"
+          },
+          "warnings": []
+        },
+        {
+          "action": "pass",
+          "mechanism": "include",
+          "value": "_netblocks2.google.com",
+          "dns_lookups": 1,
+          "void_dns_lookups": 0,
+          "record": "v=spf1 ip6:2001:4860:4000::/36 ip6:2404:6800:4000::/36 ip6:2607:f8b0:4000::/36 ip6:2800:3f0:4000::/36 ip6:2a00:1450:4000::/36 ip6:2c0f:fb50:4000::/36 ~all",
+          "parsed": {
+            "mechanisms": [
+              {
+                "action": "pass",
+                "mechanism": "ip6",
+                "value": "2001:4860:4000::/36"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip6",
+                "value": "2404:6800:4000::/36"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip6",
+                "value": "2607:f8b0:4000::/36"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip6",
+                "value": "2800:3f0:4000::/36"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip6",
+                "value": "2a00:1450:4000::/36"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip6",
+                "value": "2c0f:fb50:4000::/36"
+              }
+            ],
+            "redirect": null,
+            "exp": null,
+            "ra": null,
+            "rp": null,
+            "rr": null,
+            "all": "softfail"
+          },
+          "warnings": []
+        },
+        {
+          "action": "pass",
+          "mechanism": "include",
+          "value": "mail.zendesk.com",
+          "dns_lookups": 1,
+          "void_dns_lookups": 0,
+          "record": "v=spf1 ip4:103.151.192.0/23 ip4:185.12.80.0/22 ip4:188.172.128.0/20 ip4:192.161.144.0/20 ip4:216.198.0.0/18 ~all",
+          "parsed": {
+            "mechanisms": [
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "103.151.192.0/23"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "185.12.80.0/22"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "188.172.128.0/20"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "192.161.144.0/20"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "216.198.0.0/18"
+              }
+            ],
+            "redirect": null,
+            "exp": null,
+            "ra": null,
+            "rp": null,
+            "rr": null,
+            "all": "softfail"
+          },
+          "warnings": []
+        },
+        {
+          "action": "pass",
+          "mechanism": "include",
+          "value": "_spf.salesforce.com",
+          "dns_lookups": 2,
+          "void_dns_lookups": 0,
+          "record": "v=spf1 exists:%{i}._spf.mta.salesforce.com -all",
+          "parsed": {
+            "mechanisms": [
+              {
+                "action": "pass",
+                "mechanism": "exists",
+                "value": "%{i}._spf.mta.salesforce.com",
+                "dns_lookups": 1,
+                "void_dns_lookups": 0
+              }
+            ],
+            "redirect": null,
+            "exp": null,
+            "ra": null,
+            "rp": null,
+            "rr": null,
+            "all": "fail"
+          },
+          "warnings": []
+        },
+        {
+          "action": "pass",
+          "mechanism": "include",
+          "value": "servers.mcsv.net",
+          "dns_lookups": 1,
+          "void_dns_lookups": 0,
+          "record": "v=spf1 ip4:205.201.128.0/20 ip4:198.2.128.0/18 ip4:148.105.0.0/16 -all",
+          "parsed": {
+            "mechanisms": [
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "205.201.128.0/20"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "198.2.128.0/18"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "148.105.0.0/16"
+              }
+            ],
+            "redirect": null,
+            "exp": null,
+            "ra": null,
+            "rp": null,
+            "rr": null,
+            "all": "fail"
+          },
+          "warnings": []
+        },
+        {
+          "action": "pass",
+          "mechanism": "include",
+          "value": "mktomail.com",
+          "dns_lookups": 1,
+          "void_dns_lookups": 0,
+          "record": "v=spf1 ip4:199.15.212.0/22 ip4:72.3.185.0/24 ip4:72.32.154.0/24 ip4:72.32.217.0/24 ip4:72.32.243.0/24 ip4:94.236.119.0/26 ip4:37.188.97.188/32 ip4:185.28.196.0/22 ip4:192.28.128.0/18 ip4:103.237.104.0/22 ip4:130.248.172.0/24 ip4:130.248.173.0/24 ~all",
+          "parsed": {
+            "mechanisms": [
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "199.15.212.0/22"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "72.3.185.0/24"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "72.32.154.0/24"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "72.32.217.0/24"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "72.32.243.0/24"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "94.236.119.0/26"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "37.188.97.188/32"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "185.28.196.0/22"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "192.28.128.0/18"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "103.237.104.0/22"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "130.248.172.0/24"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "130.248.173.0/24"
+              }
+            ],
+            "redirect": null,
+            "exp": null,
+            "ra": null,
+            "rp": null,
+            "rr": null,
+            "all": "softfail"
+          },
+          "warnings": []
+        },
+        {
+          "action": "pass",
+          "mechanism": "include",
+          "value": "sendgrid.net",
+          "dns_lookups": 2,
+          "void_dns_lookups": 0,
+          "record": "v=spf1 ip4:167.89.0.0/17 ip4:208.117.48.0/20 ip4:50.31.32.0/19 ip4:198.37.144.0/20 ip4:198.21.0.0/21 ip4:192.254.112.0/20 ip4:168.245.0.0/17 ip4:149.72.0.0/16 ip4:159.183.0.0/16 ip4:134.128.64.0/18 ip4:159.26.176.0/20 include:ab.sendgrid.net ~all",
+          "parsed": {
+            "mechanisms": [
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "167.89.0.0/17"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "208.117.48.0/20"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "50.31.32.0/19"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "198.37.144.0/20"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "198.21.0.0/21"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "192.254.112.0/20"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "168.245.0.0/17"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "149.72.0.0/16"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "159.183.0.0/16"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "134.128.64.0/18"
+              },
+              {
+                "action": "pass",
+                "mechanism": "ip4",
+                "value": "159.26.176.0/20"
+              },
+              {
+                "action": "pass",
+                "mechanism": "include",
+                "value": "ab.sendgrid.net",
+                "dns_lookups": 1,
+                "void_dns_lookups": 0,
+                "record": "v=spf1 ip4:223.165.113.0/24 ip4:223.165.115.0/24 ip4:223.165.118.0/23 ip4:223.165.120.0/23 ~all",
+                "parsed": {
+                  "mechanisms": [
+                    {
+                      "action": "pass",
+                      "mechanism": "ip4",
+                      "value": "223.165.113.0/24"
+                    },
+                    {
+                      "action": "pass",
+                      "mechanism": "ip4",
+                      "value": "223.165.115.0/24"
+                    },
+                    {
+                      "action": "pass",
+                      "mechanism": "ip4",
+                      "value": "223.165.118.0/23"
+                    },
+                    {
+                      "action": "pass",
+                      "mechanism": "ip4",
+                      "value": "223.165.120.0/23"
+                    }
+                  ],
+                  "redirect": null,
+                  "exp": null,
+                  "ra": null,
+                  "rp": null,
+                  "rr": null,
+                  "all": "softfail"
+                },
+                "warnings": []
+              }
+            ],
+            "redirect": null,
+            "exp": null,
+            "ra": null,
+            "rp": null,
+            "rr": null,
+            "all": "softfail"
+          },
+          "warnings": []
+        },
+        {
+          "action": "pass",
+          "mechanism": "ip4",
+          "value": "62.253.227.114"
+        },
+        {
+          "action": "pass",
+          "mechanism": "ip4",
+          "value": "166.78.69.169"
+        },
+        {
+          "action": "pass",
+          "mechanism": "ip4",
+          "value": "166.78.69.170"
+        },
+        {
+          "action": "pass",
+          "mechanism": "ip4",
+          "value": "166.78.71.131"
+        }
+      ],
+      "redirect": null,
+      "exp": null,
+      "ra": null,
+      "rp": null,
+      "rr": null,
+      "all": "softfail"
+    }
+  },
+  "dmarc": {
+    "record": "v=DMARC1; p=quarantine; sp=reject; pct=100; rua=mailto:dmarc@github.com; ruf=mailto:dmarc@github.com; fo=1",
+    "location": "github.com",
+    "valid": true,
+    "warnings": [
+      "Support for the pct tag was removed in RFC 9989"
+    ],
+    "tags": {
+      "v": {
+        "value": "DMARC1",
+        "explicit": true
+      },
+      "p": {
+        "value": "quarantine",
+        "explicit": true
+      },
+      "sp": {
+        "value": "reject",
+        "explicit": true
+      },
+      "rua": {
+        "value": [
+          {
+            "scheme": "mailto",
+            "address": "dmarc@github.com",
+            "size_limit": null
+          }
+        ],
+        "explicit": true
+      },
+      "ruf": {
+        "value": [
+          {
+            "scheme": "mailto",
+            "address": "dmarc@github.com",
+            "size_limit": null
+          }
+        ],
+        "explicit": true
+      },
+      "fo": {
+        "value": "1",
+        "explicit": true
+      },
+      "adkim": {
+        "value": "r",
+        "explicit": false
+      },
+      "aspf": {
+        "value": "r",
+        "explicit": false
+      },
+      "psd": {
+        "value": "u",
+        "explicit": false
+      },
+      "t": {
+        "value": "n",
+        "explicit": false
+      },
+      "np": {
+        "value": "reject",
+        "explicit": false
+      }
+    }
+  },
+  "smtp_tls_reporting": {
+    "valid": false,
+    "error": "An SMTP TLS Reporting record does not exist.",
+    "warnings": []
+  },
+  "bimi": {
+    "record": null,
+    "valid": false,
+    "selector": "default",
+    "error": "A BIMI record does not exist at the default selector.",
+    "warnings": []
+  }
+}

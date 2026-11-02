@@ -1,0 +1,4 @@
+--prepared:/repo/build/Bloom.app/Contents/MacOS/BloomRender
+--validated:/repo/build/Bloom.app/Contents/MacOS/BloomRender
+/repo/build/Bloom.app: valid on disk
+/repo/build/Bloom.app: satisfies its Designated Requirement
