@@ -28,13 +28,6 @@ With the [skills CLI](https://www.npmjs.com/package/skills), into any supported 
 npx skills add s3anstanz/ProdMate
 ```
 
-As a Claude Code plugin:
-
-```
-/plugin marketplace add s3anstanz/ProdMate
-/plugin install prodmate@prodmate
-```
-
 Or copy the folder by hand:
 
 - Claude Code: copy `skills/prodmate` to `.claude/skills/prodmate` in your repo (or `~/.claude/skills/prodmate` for every repo).
@@ -51,7 +44,6 @@ Found a bug, or did ProdMate get something wrong about your app? [Open an issue]
 - `skills/prodmate/`: the skill itself. This is the only folder an install copies.
 - `tests/prodmate/`: unit tests for the skill's scripts. Run them with `python3 -m unittest discover -s tests/prodmate -t .`
 - `docs/`: design notes, [how to release](docs/releasing.md) and [how to roll back](docs/runbooks/rollback.md).
-- `.claude-plugin/marketplace.json`: the Claude Code plugin listing.
 - `.github/`: the test workflow (Python 3.9 and latest, on Ubuntu and macOS), Dependabot config and issue templates.
 
 ## License
