@@ -42,7 +42,7 @@ Found a bug, or did ProdMate get something wrong about your app? [Open an issue]
 ## What's in this repo
 
 - `skills/prodmate/`: the skill itself. This is the only folder an install copies.
-- `tests/prodmate/`: unit tests for the skill's scripts. Run them with `python3 -m unittest discover -s tests/prodmate -t .`
+- `tests/prodmate/`: unit tests for the skill's scripts. Run them with `python3 -m unittest discover -s tests/prodmate -t .` With gitleaks and osv-scanner installed, `python3 tests/prodmate/integration_check.py` also checks the real tools.
 - `docs/`: design notes, [how to release](docs/releasing.md) and [how to roll back](docs/runbooks/rollback.md).
 - `.github/`: the test workflow (Python 3.9 and latest, on Ubuntu and macOS), Dependabot config and issue templates.
 
