@@ -52,7 +52,7 @@ Loaded when detect.py finds a `macos-app`. The codesign audit needs a built `.ap
 - tier: grow
 - why: People need a way to get bug fixes and new versions without reinstalling by hand from source.
 - applies-when: the app is meant for people other than its author
-- check: Done when a documented update path exists: a GitHub Release feed people can watch, a Homebrew cask (brew upgrade), the Mac App Store, or an in-app updater. Missing when there's none.
+- check: Done when a documented update path exists that a non-developer can use: a GitHub Release feed with downloadable builds, a Homebrew cask (brew upgrade), the Mac App Store, or an in-app updater. Missing when there's none. An update path that needs developer tools (git pull and rebuild, or re-running a build-from-source script) is still Missing for an app meant for other people; cite it as evidence, not as Partial.
 - agent-fix: offer network-free paths first: a signed and notarized GitHub Release download with release notes, and a Homebrew cask so `brew upgrade` works; the app itself never phones home. An in-app auto-updater (e.g. Sparkle) contacts the network to check for updates, so it conflicts with a no-network promise; only suggest one when the app makes no such promise.
 - audit: none
 - you-do: publish each new version as a GitHub Release and bump the cask version
