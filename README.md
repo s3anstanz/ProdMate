@@ -37,7 +37,7 @@ ProdMate checks what you have before it starts and works with it. Python 3.9 or 
 
 ## Getting help
 
-Found a bug, or did ProdMate get something wrong about your app? [Open an issue](https://github.com/s3anstanz/ProdMate/issues/new/choose). For security problems, use the Security tab's **Report a vulnerability** instead (see [SECURITY.md](SECURITY.md)).
+Found a bug, or did ProdMate get something wrong about your app? [Open an issue](https://github.com/s3anstanz/ProdMate/issues/new/choose).
 
 ## What's in this repo
 
