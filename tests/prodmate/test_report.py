@@ -222,6 +222,11 @@ class HtmlTest(unittest.TestCase):
         self.assertIn("Fixed just now", page)
         self.assertIn("you confirmed 2026-11-03", page)
 
+    def test_html_fixed_today_in_utc_is_just_now(self):
+        app = app_with([("blocker", "Done"), ("grow", "Missing")])
+        app["items"][0]["fixed"] = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
+        self.assertIn("Fixed just now", self.html(single(app)))
+
     def test_html_fixed_earlier_shows_date(self):
         app = app_with([("blocker", "Done"), ("grow", "Missing")])
         app["items"][0]["fixed"] = "2026-10-01"

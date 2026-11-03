@@ -83,7 +83,7 @@ Statuses are exactly **Done · Partial · Missing · Can't verify** (plus Not ap
 5. Where a **You do** step needs an outside service, offer the matching MCP connection from `references/mcp-catalog.md` so the agent can help set it up. Every action through it that creates an account, spends money or changes DNS needs its own explicit yes.
 6. When the user says "skip X because Y", run `python3 scripts/state.py decide <repo> <item id> skip "<Y>"`, so the next run doesn't raise it again. When they say they'll do it after all, record `accept`.
 7. Never fix a secret by showing it. Move it to an environment variable and tell the user to rotate it (`common.leaked-key-rotation`).
-8. **Keep the page current.** After each change, re-run that item's check. When it passes, update the item in `report.json` (`status`, `evidence`, `fixed`) and the top-level `last_update`, then run `report.py render` again: the open page reloads and crosses it off. When the person confirms something only they can do, set `confirmed` instead. When they're done, stop the report server.
+8. **Keep the page current.** After each change, re-run that item's check. When it passes, update the item in `report.json` (`status`, `evidence`, `fixed`) and the top-level `last_update`, rewrite the app's `verdict`, `summary` and `couldnt_check` wherever they no longer match, then run `report.py render` again: the open page reloads and crosses it off. When the person confirms something only they can do, set `confirmed` instead. When they're done, stop the report server.
 
 ## Plain words
 

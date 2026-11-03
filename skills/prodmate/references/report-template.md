@@ -54,7 +54,7 @@ Write the findings once, as `.prodmate/report.json`, then run `python3 scripts/r
 
 ## Updating as things get fixed
 
-When a change makes an item's own `check` pass, set its `status` to `Done`, its `evidence`, and `fixed` to today, then set the top-level `last_update` to one plain sentence ("Just now: ProdMate locked the refund page to admins, and your tests still pass.") and run `report.py render` again. The open page reloads by itself. When the checklist accepts the person's word (a rotated key, backups turned on), set `confirmed` to today instead of claiming ProdMate checked it. Never set `Done` for anything that wasn't re-checked or confirmed.
+When a change makes an item's own `check` pass, set its `status` to `Done`, its `evidence`, and `fixed` to today, then set the top-level `last_update` to one plain sentence ("Just now: ProdMate locked the refund page to admins, and your tests still pass."). Then reread the app's `verdict`, `summary` and `couldnt_check` and rewrite whatever no longer matches what's left (no "not ready" once the blockers are gone, no fix steps for something already fixed, no count of checks that have since been checked), and run `report.py render` again. The open page reloads by itself. When the checklist accepts the person's word (a rotated key, backups turned on), set `confirmed` to today instead of claiming ProdMate checked it. Never set `Done` for anything that wasn't re-checked or confirmed.
 
 ## Without Python: write report.md by hand
 

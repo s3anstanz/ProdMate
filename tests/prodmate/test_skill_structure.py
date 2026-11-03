@@ -82,6 +82,14 @@ class SkillStructureTest(unittest.TestCase):
         self.assertIn("scripts/report.py render", text)
         self.assertIn("scripts/report_server.py serve", text)
 
+    def test_updates_refresh_app_narrative(self):
+        template = (SKILL_DIR / "references" / "report-template.md").read_text(encoding="utf-8")
+        updating = template.split("## Updating as things get fixed", 1)[1].split("\n## ", 1)[0]
+        step = self.skill_text().split("**Keep the page current.**", 1)[1].split("\n", 1)[0]
+        for text in (updating, step):
+            for field in ("verdict", "summary", "couldnt_check"):
+                self.assertIn(f"`{field}`", text)
+
     def test_assets_exist(self):
         for name in ("report.css", "report.js"):
             with self.subTest(asset=name):

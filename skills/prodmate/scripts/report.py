@@ -329,7 +329,9 @@ def row(item):
     fixed = item["status"] == "Done" and item.get("fixed")
     glyph = {"Done": "d", "Partial": "p", "Can't verify": "c", "Missing": ""}[item["status"]]
     if fixed:
-        when = "just now" if item["fixed"] == datetime.date.today().isoformat() else nice_date(item["fixed"])
+        # "Today" in local time or UTC, since an agent may write either.
+        today = {datetime.date.today().isoformat(), datetime.datetime.now(datetime.timezone.utc).date().isoformat()}
+        when = "just now" if item["fixed"] in today else nice_date(item["fixed"])
         by = f'<span class="badge">Fixed {when}</span>'
     elif item["status"] == "Done":
         by = '<span class="by">Checked</span>'
