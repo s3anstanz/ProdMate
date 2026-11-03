@@ -47,13 +47,16 @@ class ReportDataTest(unittest.TestCase):
         self.assertEqual(len(errors), 1)
         self.assertIn("na_reason", errors[0])
 
-    def test_score_counts_done_over_applicable(self):
-        self.assertEqual(report.score(load()["apps"][0]), {"done": 12, "applicable": 47, "percent": 26})
+    def test_score_gives_half_credit_for_partial(self):
+        # Sean, 2026-11-02: partly done items count half; Can't verify counts zero.
+        self.assertEqual(report.score(load()["apps"][0]), {"done": 12, "partial": 14, "applicable": 47, "percent": 40})
+        app = app_with([("blocker", "Done"), ("grow", "Partial"), ("grow", "Can't verify"), ("polish", "Missing")])
+        self.assertEqual(report.score(app)["percent"], 38)  # (1 + 0.5) / 4
 
     def test_score_with_no_applicable_items(self):
         app = app_with([("grow", "Not applicable"), ("polish", "Not applicable")])
-        self.assertEqual(report.score(app), {"done": 0, "applicable": 0, "percent": 0})
-        self.assertEqual(report.score(app_with([])), {"done": 0, "applicable": 0, "percent": 0})
+        self.assertEqual(report.score(app), {"done": 0, "partial": 0, "applicable": 0, "percent": 0})
+        self.assertEqual(report.score(app_with([])), {"done": 0, "partial": 0, "applicable": 0, "percent": 0})
 
     def test_pick_first_prefers_missing_blocker(self):
         item, good_shape = report.pick_first(load()["apps"][0])

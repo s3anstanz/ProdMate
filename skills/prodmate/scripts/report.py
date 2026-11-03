@@ -69,11 +69,12 @@ def validate(report):
 
 
 def score(app):
-    """Done items over applicable items; Can't verify counts as not done."""
+    """Readiness: Done counts 1, Partial counts half, Can't verify and Missing count 0, over applicable items."""
     items = applicable(app)
     done = sum(1 for i in items if i.get("status") == "Done")
-    percent = round(done * 100 / len(items)) if items else 0
-    return {"done": done, "applicable": len(items), "percent": percent}
+    partial = sum(1 for i in items if i.get("status") == "Partial")
+    percent = int((done + partial / 2) * 100 / len(items) + 0.5) if items else 0
+    return {"done": done, "partial": partial, "applicable": len(items), "percent": percent}
 
 
 def pick_first(app):
