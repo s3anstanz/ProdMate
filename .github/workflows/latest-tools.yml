@@ -1,0 +1,56 @@
+name: Latest audit tools
+
+# The "Real audit tools" job in test.yml pins exact gitleaks and osv-scanner versions so
+# pull requests aren't blocked by an upstream release. This workflow runs the same checks
+# against the LATEST releases, which is what people get from `brew install`, so a new
+# version that changes its output shows up here first. It is not a required check:
+# a failure here means "update ProdMate (and the pins in test.yml)", not "block PRs".
+# GitHub emails the repo owner when a scheduled run fails.
+
+on:
+  schedule:
+    - cron: "17 9 * * 1" # Mondays 09:17 UTC
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/latest-tools.yml
+
+permissions:
+  contents: read
+
+jobs:
+  latest-tools:
+    name: Latest audit tools
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.x"
+      - name: Install the latest gitleaks and osv-scanner (verified against each release's checksums)
+        run: |
+          set -euo pipefail
+          bin="$RUNNER_TEMP/bin"
+          mkdir -p "$bin"
+          cd "$RUNNER_TEMP"
+
+          gl_tag=$(gh api repos/gitleaks/gitleaks/releases/latest --jq .tag_name)
+          gl_ver=${gl_tag#v}
+          gh release download "$gl_tag" -R gitleaks/gitleaks \
+            -p "gitleaks_${gl_ver}_linux_x64.tar.gz" -p "gitleaks_${gl_ver}_checksums.txt"
+          grep " gitleaks_${gl_ver}_linux_x64.tar.gz\$" "gitleaks_${gl_ver}_checksums.txt" | sha256sum --check
+          tar -xzf "gitleaks_${gl_ver}_linux_x64.tar.gz" -C "$bin" gitleaks
+
+          osv_tag=$(gh api repos/google/osv-scanner/releases/latest --jq .tag_name)
+          gh release download "$osv_tag" -R google/osv-scanner -p osv-scanner_linux_amd64 -p osv-scanner_SHA256SUMS
+          grep " osv-scanner_linux_amd64\$" osv-scanner_SHA256SUMS | sha256sum --check
+          install -m 755 osv-scanner_linux_amd64 "$bin/osv-scanner"
+
+          echo "$bin" >> "$GITHUB_PATH"
+          echo "Testing gitleaks $gl_tag and osv-scanner $osv_tag" >> "$GITHUB_STEP_SUMMARY"
+      - name: Tool versions
+        run: gitleaks version && osv-scanner --version
+      - name: Real-tool checks
+        run: python tests/prodmate/integration_check.py
