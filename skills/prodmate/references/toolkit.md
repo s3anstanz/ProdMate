@@ -55,4 +55,4 @@ If `python3` is missing or older than 3.9, don't stop. Say so in plain words, of
 - **Detect:** read `scripts/detect.py` as the rulebook (which files mark an app root, which dependencies mean which type, the promise phrases to look for) and apply it yourself with file reads and searches.
 - **Audits:** read `scripts/audits.py` for each tool's exact command and severity rules, run the tool directly, and read its output the same way. gitleaks must still run with `--redact`.
 - **State:** skip `state.json`. Tell the person their skip decisions won't be remembered for the next run.
-- **Report:** in "What I checked and what I couldn't", say the run was done without Python and what that cost.
+- **Report:** write `report.md` by hand, following "Without Python" in `references/report-template.md`. There's no guided page without Python: say so, and in "What I checked and what I couldn't" say the run was done without Python and what that cost.

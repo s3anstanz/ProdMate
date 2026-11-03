@@ -77,6 +77,24 @@ class SkillStructureTest(unittest.TestCase):
     def test_skill_md_has_no_python_fallback(self):
         self.assertIn("Without Python", self.skill_text())
 
+    def test_skill_md_mentions_report_render(self):
+        text = self.skill_text()
+        self.assertIn("scripts/report.py render", text)
+        self.assertIn("scripts/report_server.py serve", text)
+
+    def test_updates_refresh_app_narrative(self):
+        template = (SKILL_DIR / "references" / "report-template.md").read_text(encoding="utf-8")
+        updating = template.split("## Updating as things get fixed", 1)[1].split("\n## ", 1)[0]
+        step = self.skill_text().split("**Keep the page current.**", 1)[1].split("\n", 1)[0]
+        for text in (updating, step):
+            for field in ("verdict", "summary", "couldnt_check"):
+                self.assertIn(f"`{field}`", text)
+
+    def test_assets_exist(self):
+        for name in ("report.css", "report.js"):
+            with self.subTest(asset=name):
+                self.assertTrue((SKILL_DIR / "assets" / name).is_file())
+
     def test_long_references_have_toc(self):
         for path in sorted((SKILL_DIR / "references").rglob("*.md")):
             lines = path.read_text(encoding="utf-8").splitlines()

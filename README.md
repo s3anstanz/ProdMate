@@ -7,7 +7,7 @@ You point your agent (Claude Code, Codex, Cursor) at a repo and say "Run ProdMat
 1. **Detects** what kind of app it is (web app, macOS app, LLM app and more) and reads the app's own promises, like "never touches the network".
 2. **Triages** a checklist, skipping items that don't apply or would break those promises.
 3. **Assesses** the rest with `file:line` evidence and free audit tools (Lighthouse, osv-scanner, gitleaks, MDN HTTP Observatory, checkdmarc, codesign). It asks before installing or running anything.
-4. **Reports** a ranked list: launch blockers, then before you grow, then polish. Each item says who acts: the agent can fix it, the agent can check it, or you do it, with exact steps.
+4. **Reports** a ranked list: launch blockers, then before you grow, then polish. Each item says who acts: the agent can fix it, the agent can check it, or you do it, with exact steps. The report opens as a guided page in your browser that crosses items off as they get fixed, and is saved as `.prodmate/report.md` too.
 5. **Acts**: it offers fixes one approved change at a time and never commits, deploys or pushes on its own.
 
 ## How to install ProdMate
