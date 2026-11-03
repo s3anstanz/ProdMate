@@ -35,6 +35,12 @@ def make_server(report_html, port=0):
         def do_GET(self):
             self.server.last_request = time.monotonic()
             path = self.path.split("?", 1)[0]
+            port = self.server.server_address[1]
+            # Only answer requests addressed to this machine, so another website can't
+            # point its own domain at 127.0.0.1 (DNS rebinding) and read the report.
+            if self.headers.get("Host") not in (f"127.0.0.1:{port}", f"localhost:{port}"):
+                self.send(404, b"Not found", "text/plain; charset=utf-8")
+                return
             try:
                 if path == "/":
                     self.send(200, report_html.read_bytes(), "text/html; charset=utf-8")

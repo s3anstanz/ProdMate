@@ -65,6 +65,21 @@ class ReportServerTest(unittest.TestCase):
         self.page.write_text("<!DOCTYPE html><p>back</p>", encoding="utf-8")
         self.assertEqual(self.get("/")[0], 200)
 
+    def test_server_rejects_foreign_host(self):
+        port = self.server.server_address[1]
+        for host in ("evil.example", f"evil.example:{port}", "127.0.0.1.evil.example"):
+            with self.subTest(host=host):
+                req = urllib.request.Request(self.base + "/", headers={"Host": host})
+                with self.assertRaises(urllib.error.HTTPError) as ctx:
+                    urllib.request.urlopen(req, timeout=5)
+                self.assertEqual(ctx.exception.code, 404)
+                ctx.exception.close()
+        for host in (f"127.0.0.1:{port}", f"localhost:{port}"):
+            with self.subTest(host=host):
+                req = urllib.request.Request(self.base + "/__prodmate/version", headers={"Host": host})
+                with urllib.request.urlopen(req, timeout=5) as resp:
+                    self.assertEqual(resp.status, 200)
+
     def test_server_rejects_other_paths(self):
         for path in ("/x", "/../etc/passwd", "/report.json", "/%2e%2e/etc/passwd"):
             with self.subTest(path=path):

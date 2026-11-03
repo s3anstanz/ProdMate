@@ -34,6 +34,22 @@ def is_open(item):
     return item.get("status") in OPEN_ORDER
 
 
+def section_errors(app, where, key, required):
+    """Problems in an optional list section (notes, promises): null or absent is fine."""
+    value = app.get(key)
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        return [f"{where}.{key} must be a list"]
+    errors = []
+    for n, entry in enumerate(value):
+        if not isinstance(entry, dict):
+            errors.append(f"{where}.{key}[{n}] must be an object")
+            continue
+        errors += [f"{where}.{key}[{n}] is missing '{k}'" for k in required if entry.get(k) in (None, "")]
+    return errors
+
+
 def validate(report):
     """Return a list of problems in a report.json document; empty means valid."""
     if not isinstance(report, dict):
@@ -53,6 +69,13 @@ def validate(report):
             continue
         errors += [f"{where} is missing '{k}'" for k in APP_KEYS if k not in app]
         items = app.get("items")
+        if "items" in app and not isinstance(items, list):
+            errors.append(f"{where}.items must be a list")
+        errors += section_errors(app, where, "notes", ("title", "text"))
+        errors += section_errors(app, where, "promises", ("quote", "file", "line"))
+        cc = app.get("couldnt_check")
+        if cc is not None and not isinstance(cc, dict):
+            errors.append(f"{where}.couldnt_check must be an object with 'summary' and 'details'")
         if not isinstance(items, list):
             continue
         for i, item in enumerate(items):
@@ -117,6 +140,17 @@ def items_in(app, tier):
     return sorted(enumerate(rows), key=lambda p: (OPEN_ORDER.get(p[1]["status"], 3), p[0]))
 
 
+def couldnt_summary(app):
+    """The "couldn't check" line: the agent's own, or a count of Can't verify items, or None."""
+    cc = app.get("couldnt_check") or {}
+    if cc.get("summary"):
+        return cc["summary"]
+    cant = sum(1 for i in applicable(app) if i.get("status") == "Can't verify")
+    if not cant:
+        return None
+    return f"{cant} thing{'s' if cant != 1 else ''} I couldn't check. Each one is marked below, with the steps to check it yourself."
+
+
 def done_note(item):
     """What a Done item's evidence line says, including a confirmation date."""
     note = item.get("evidence") or "Checked."
@@ -154,14 +188,14 @@ def markdown_app(app, checked):
         "",
     ]
     cc = app.get("couldnt_check") or {}
-    out += [cc.get("summary", "Everything on the checklist was checked."), ""]
+    out += [couldnt_summary(app) or "Everything on the checklist was checked.", ""]
     if cc.get("details"):
         out += [cc["details"], ""]
 
     out += ["## Promises honored", ""]
     promises = app.get("promises") or []
     for p in promises:
-        out.append(f'- "{p["quote"]}" (`{p["file"]}:{p["line"]}`). {p.get("effect", "")}'.rstrip())
+        out.append(f'- "{p["quote"]}" (`{p["file"]}:{p["line"]}`). {p.get("effect") or ""}'.rstrip())
     out += (["No product promises found."] if not promises else []) + [""]
 
     for tier in TIERS:
@@ -295,7 +329,8 @@ def row(item):
     fixed = item["status"] == "Done" and item.get("fixed")
     glyph = {"Done": "d", "Partial": "p", "Can't verify": "c", "Missing": ""}[item["status"]]
     if fixed:
-        by = '<span class="badge">Fixed just now</span>'
+        when = "just now" if item["fixed"] == datetime.date.today().isoformat() else nice_date(item["fixed"])
+        by = f'<span class="badge">Fixed {when}</span>'
     elif item["status"] == "Done":
         by = '<span class="by">Checked</span>'
     elif item["status"] == "Can't verify" and not str(item.get("by") or "").startswith("You"):
@@ -355,9 +390,10 @@ def app_html(app, checked, index, last_update):
         "</div>",
     ]
     cc = app.get("couldnt_check") or {}
-    if cc.get("summary"):
+    caveat = couldnt_summary(app)
+    if caveat:
         details = f'<p>{t(cc["details"])}</p>' if cc.get("details") else ""
-        parts.append(f'<details class="caveat"><summary>{t(cc["summary"])}</summary>{details}</details>')
+        parts.append(f'<details class="caveat"><summary>{t(caveat)}</summary>{details}</details>')
     parts.append(first_panel(first, good_shape))
     parts += [tier_section(app, tier, first) for tier in TIERS]
     notes = app.get("notes") or []

@@ -1,4 +1,5 @@
 import copy
+import datetime
 import json
 import sys
 import unittest
@@ -46,6 +47,30 @@ class ReportDataTest(unittest.TestCase):
         errors = report.validate(data)
         self.assertEqual(len(errors), 1)
         self.assertIn("na_reason", errors[0])
+
+    def test_validate_rejects_malformed_optional_sections(self):
+        cases = {
+            "items is a string": ("items", "none"),
+            "notes is a string": ("notes", "watch out"),
+            "note without title": ("notes", [{"text": "t"}]),
+            "promise without line": ("promises", [{"quote": "q", "file": "README.md"}]),
+            "couldnt_check is a string": ("couldnt_check", "a few things"),
+        }
+        for label, (key, value) in cases.items():
+            with self.subTest(case=label):
+                data = load()
+                data["apps"][0][key] = value
+                errors = report.validate(data)
+                self.assertTrue(errors, f"{label} passed validation")
+                self.assertTrue(any(f"apps[0].{key}" in e or f"apps[0] '{key}'" in e for e in errors), errors)
+
+    def test_validate_accepts_null_optional_sections(self):
+        data = load()
+        app = data["apps"][0]
+        app["notes"] = None
+        app["promises"] = None
+        app["couldnt_check"] = None
+        self.assertEqual(report.validate(data), [])
 
     def test_score_gives_half_credit_for_partial(self):
         # Sean, 2026-11-02: partly done items count half; Can't verify counts zero.
@@ -122,6 +147,35 @@ class MarkdownTest(unittest.TestCase):
         app["items"][0]["confirmed"] = "2026-11-03"
         self.assertIn("you confirmed 2026-11-03", report.render_markdown(single(app)))
 
+    def test_null_optional_fields_render(self):
+        data = load()
+        app = data["apps"][0]
+        app["couldnt_check"] = {"summary": None, "details": None}
+        for p in app["promises"]:
+            p["effect"] = None
+        for item in app["items"]:
+            for key in ("why", "found", "you", "prodmate", "by", "say", "steps", "evidence", "confirmed", "fixed"):
+                item[key] = None
+        md = report.render_markdown(data)
+        page = report.render_html(data)
+        self.assertNotIn("None", md)
+        self.assertNotIn("None", page)
+
+    def test_markdown_never_claims_everything_checked_with_cant_verify(self):
+        data = load()
+        app = data["apps"][0]
+        del app["couldnt_check"]
+        cant = sum(1 for i in app["items"] if i["status"] == "Can't verify")
+        self.assertGreater(cant, 0)
+        md = report.render_markdown(data)
+        self.assertNotIn("Everything on the checklist was checked.", md)
+        self.assertIn(f"{cant} things I couldn't check", md)
+        self.assertIn(f"{cant} things I couldn&#x27;t check", report.render_html(data))
+
+    def test_markdown_everything_checked_when_nothing_cant_verify(self):
+        data = single(app_with([("blocker", "Done"), ("grow", "Missing")]))
+        self.assertIn("Everything on the checklist was checked.", report.render_markdown(data))
+
     def test_markdown_no_applicable_items(self):
         md = report.render_markdown(single(app_with([("grow", "Not applicable")])))
         self.assertIn("Nothing on the checklist applies to this app.", md)
@@ -161,12 +215,20 @@ class HtmlTest(unittest.TestCase):
 
     def test_html_fixed_and_confirmed(self):
         app = app_with([("blocker", "Done"), ("grow", "Done"), ("grow", "Missing")])
-        app["items"][0]["fixed"] = "2026-11-02"
+        app["items"][0]["fixed"] = datetime.date.today().isoformat()
         app["items"][1]["confirmed"] = "2026-11-03"
         page = self.html(single(app))
         self.assertIn('class="row fixed"', page)
         self.assertIn("Fixed just now", page)
         self.assertIn("you confirmed 2026-11-03", page)
+
+    def test_html_fixed_earlier_shows_date(self):
+        app = app_with([("blocker", "Done"), ("grow", "Missing")])
+        app["items"][0]["fixed"] = "2026-10-01"
+        page = self.html(single(app))
+        self.assertIn('class="row fixed"', page)
+        self.assertNotIn("Fixed just now", page)
+        self.assertIn("Fixed 1 October 2026", page)
 
     def test_html_multi_app_sections(self):
         web = app_with([("blocker", "Done"), ("grow", "Missing")])
