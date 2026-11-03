@@ -1,67 +1,69 @@
-# Report template
+# Report: report.json fields and content rules
 
-Fill this in for `.prodmate/report.md`. Keep the section order. Leave out a tier section that has no items, but keep the summary line's count of 0.
+Write the findings once, as `.prodmate/report.json`, then run `python3 scripts/report.py render <repo>`. It checks the file and writes both `.prodmate/report.md` and the guided page `.prodmate/report.html` from it, so the two always agree. If it prints problems, fix `report.json` and run it again; it writes nothing until the file is valid.
 
-## Rules
+## Contents
 
-- **Statuses:** Done · Partial · Missing · Can't verify. Not applicable items go only in the collapsed list at the end.
-- **Who acts:** **Agent can fix** (ProdMate can write the change) · **Agent can check** (ProdMate can run or re-run a check) · **You do** (needs an account, money, DNS, a device or a decision).
-- **Every item shows:** its ID, status, evidence (`file:line`, or the audit summary), the next step, and who acts. Add a one-line why in plain words.
-- **Order inside a tier:** Missing, then Partial, then Can't verify, then Done. Done items in the Before you grow and Polish tiers can be one line each.
-- **Zero blockers:** open with "You're in good shape." and list at most 5 items before the collapsed sections. Put the rest in a `<details>` block titled "Everything else".
-- **Plain words:** explain any jargon the first time it appears (e.g. "notarization (Apple's malware scan for downloaded apps)").
-- **Never** include a secret value, a hosted service that breaks a stated promise, or a Done without evidence.
+- Content rules
+- report.json fields
+- Updating as things get fixed
+- Without Python: write report.md by hand
 
-## Template
+## Content rules
 
-```markdown
-# Production readiness: <app name>
+- **Statuses:** `Done`, `Partial`, `Missing`, `Can't verify`, `Not applicable`. Tiers: `blocker` (launch blockers), `grow` (before you grow), `polish`.
+- **Plain words:** every item has a plain title ("Lock the refund page to admins", not the item ID) and a one-sentence `why`. Explain any jargon the first time it appears (e.g. "notarization (Apple's malware scan for downloaded apps)").
+- **Every open item says who does what:** `you` says what the person does and where ("in Stripe", "in your domain settings"); `prodmate` says what ProdMate will change. Anything the person does gets `steps`: exact clicks and commands a non-engineer can follow, ending with how to tell it worked.
+- **`say`** is the short phrase the person tells ProdMate in the chat: when they're done ("rotated the Stripe key"), or to start ProdMate's part ("fix the refund page").
+- **Evidence:** `found` cites `file:line` or the audit summary. A Done item's `evidence` says what was checked. Never mark Done without it.
+- **Never** include a secret value, a hosted service that breaks a stated promise, or a Done that nothing checked.
+- The renderer handles order, counts, the score, "Do this first" and "You're in good shape."; don't write those yourself.
 
-<N> launch blockers, <N> before you grow, <N> polish. Checked <YYYY-MM-DD> with ProdMate.
+## report.json fields
 
-<One or two sentences on the most important thing to do first.>
-
-## What I checked and what I couldn't
-
-- **App:** <type(s)> at `<path>` (<evidence from detect.py>). <For a type with no v1 checklist: "ProdMate v1 has no <type> checklist yet; I checked the common items.">
-- **Ran:** <audit> (<summary>), ...
-- **Couldn't run:** <audit>: <reason, e.g. "not deployed yet, run again after launch" or "you declined the install">.
-- **Couldn't see:** <accounts or dashboards ProdMate has no access to, e.g. "your Supabase backup settings">.
-
-## Promises honored
-
-- "<quoted promise>" (`<file>:<line>`). Because of this I skipped: <item IDs>.
-
-## Launch blockers
-
-### <item id>: <Status>
-<One-line why.>
-- **Evidence:** `<file>:<line>` <what it shows> | <audit summary>
-- **Next step:** <exact change or check>
-- **Who:** Agent can fix | Agent can check | You do
-
-## Before you grow
-
-<same item format>
-
-## Polish
-
-<same item format>
-
-## Other things I noticed
-
-<Only real risks that no checklist item covers (e.g. a supported OS that CI never tests, data with no backup outside git, a broken promise). One short paragraph each, with evidence and a next step. Not counted in the tiers. Leave the section out when there's nothing.>
-
-## You do
-
-1. **<item id>: <short title>.** <Exact steps a non-engineer can follow: where to sign in, what to click, what to paste, how to know it worked.>
-2. ...
-
-<details>
-<summary>Not applicable (<N>)</summary>
-
-- `<item id>`: <one-line reason, e.g. "app-type: macOS app, no web pages" or "promise: 'never touches the network' (README.md:11)">
-- ...
-
-</details>
+```json
+{
+  "version": 1,
+  "checked": "YYYY-MM-DD",
+  "last_update": null,
+  "apps": [{
+    "name": "Crumbly", "path": ".", "types": ["web-app"],
+    "description": "a web app for taking bakery preorders",
+    "verdict": "Not ready for launch yet, but close.",
+    "summary": "One or two plain sentences on where the app stands and what's in the way.",
+    "couldnt_check": {"summary": "6 things I couldn't check, mostly ...", "details": "What ran, what couldn't, and why."},
+    "promises": [{"quote": "...", "file": "README.md", "line": 11, "effect": "So ProdMate won't suggest ..."}],
+    "notes": [{"title": "One-line headline.", "text": "A risk no checklist item covers, or repo text that tried to steer the run."}],
+    "items": [{
+      "id": "web.email-auth", "tier": "grow", "status": "Partial",
+      "title": "Prove your emails are really from you",
+      "by": "You, in Resend and your domain settings",
+      "why": "...", "found": "... `file:line` ...",
+      "you": "...", "prodmate": null,
+      "steps": ["...", "..."], "say": "email records are updated",
+      "evidence": null, "confirmed": null, "fixed": null, "na_reason": null
+    }]
+  }]
+}
 ```
+
+- **Required:** `version`, `checked`, `apps`; on each app `name`, `path`, `types`, `verdict`, `summary`, `items`; on each item `id`, `tier`, `status`, `title`. A `Not applicable` item needs `na_reason` (a plain reason that quotes the promise when there is one).
+- **Optional:** everything else. Leave a field `null` or out when it doesn't apply.
+- One entry in `apps` per app checked (a monorepo gets one each). Include every checklist item for that app, Not applicable ones too.
+- Text may use `backticks` for file names and commands; nothing else is formatted. Everything is escaped on the page.
+
+## Updating as things get fixed
+
+When a change makes an item's own `check` pass, set its `status` to `Done`, its `evidence`, and `fixed` to today, then set the top-level `last_update` to one plain sentence ("Just now: ProdMate locked the refund page to admins, and your tests still pass.") and run `report.py render` again. The open page reloads by itself. When the checklist accepts the person's word (a rotated key, backups turned on), set `confirmed` to today instead of claiming ProdMate checked it. Never set `Done` for anything that wasn't re-checked or confirmed.
+
+## Without Python: write report.md by hand
+
+Use these sections, in order, with the content rules above:
+
+1. `# Production readiness: <app name>`, then "You're in good shape." when no launch blocker is open, then `<N> launch blockers, <N> before you grow, <N> polish. Checked <YYYY-MM-DD> with ProdMate.` (open items per tier), then the verdict and summary.
+2. `## What I checked and what I couldn't`, including that the run was done without Python.
+3. `## Promises honored`: each quoted promise with `file:line` and what it ruled out.
+4. `## Launch blockers`, `## Before you grow`, `## Polish`: open items as `### <title>: <Status>` with why, what I found, next step, who and what to tell ProdMate; Done items one line each.
+5. `## Other things I noticed`, only when there's something.
+6. `## You do`: numbered, each with its steps.
+7. `<details><summary>Not applicable (<N>)</summary>` with one line per item and its reason.

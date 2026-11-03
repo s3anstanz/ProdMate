@@ -29,9 +29,13 @@ Use this after writing the report. Answer each check with pass or fail. If any c
 
 ## Report
 
-17. Are tiers ordered Launch blockers → Before you grow → Polish, with Missing first inside each tier?
-18. Does every item show its ID, status, evidence, next step and who acts?
-19. Does every You do item have exact steps a non-engineer could follow?
-20. With zero blockers, does it open with "You're in good shape." and list at most 5 items before the collapsed sections?
-21. Is every jargon term explained the first time it's used?
-22. Do the summary line's counts match the items in each tier?
+17. Did `report.md` and `report.html` both come from one `report.py render` run of the same `report.json` (or, without Python, does `report.md` say there's no guided page)?
+18. Is nothing crossed off unless its status is Done after a re-check, with confirmations marked `confirmed` rather than claimed as checked?
+19. Does every open item have a plain `why` and either `you` with `steps` or `prodmate`, and does every `you` say where (which service, which settings)?
+20. Was the page opened for the person, or its path given?
+21. Are tiers ordered Launch blockers → Before you grow → Polish, with Missing first inside each tier?
+22. Does every item have a plain title, status, evidence, next step and who acts?
+23. Does every You do item have exact steps a non-engineer could follow?
+24. With zero open launch blockers, does the report open with "You're in good shape."?
+25. Is every jargon term explained the first time it's used?
+26. Do the summary line's counts match the items in each tier?
