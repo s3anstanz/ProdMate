@@ -7,8 +7,13 @@ from it, so the two can never disagree.
 
 Usage: python3 scripts/report.py render <repo>
 """
+import datetime
+import html
 import json
+import math
+import re
 import sys
+from pathlib import Path
 
 STATUSES = ("Done", "Partial", "Missing", "Can't verify", "Not applicable")
 TIERS = ("blocker", "grow", "polish")
@@ -207,6 +212,190 @@ def markdown_app(app, checked):
 def render_markdown(report):
     """The report as markdown, one section per app, from report.json data."""
     return "\n".join(markdown_app(app, report["checked"]) for app in report["apps"]).rstrip() + "\n"
+
+
+ASSETS = Path(__file__).resolve().parents[1] / "assets"
+SEG_CLASS = {"Done": "seg-done", "Partial": "seg-partial", "Can't verify": "seg-cant", "Missing": "seg-todo"}
+MONTHS = ("January", "February", "March", "April", "May", "June", "July", "August",
+          "September", "October", "November", "December")
+
+
+def t(value):
+    """Escape text from report.json for HTML, then turn `backtick spans` into <code>."""
+    escaped = html.escape(str(value), quote=True)
+    return re.sub(r"`([^`]+)`", r"<code>\1</code>", escaped)
+
+
+def nice_date(iso):
+    try:
+        d = datetime.date.fromisoformat(iso)
+    except (TypeError, ValueError):
+        return t(iso)
+    return f"{d.day} {MONTHS[d.month - 1]} {d.year}"
+
+
+def ring_svg(app):
+    statuses = ring_order(app)
+    n = len(statuses)
+    if not n:
+        return '<svg viewBox="0 0 120 120" aria-hidden="true"></svg>'
+    r, c, gap = 50, 60, 2.4 if n > 24 else 3.2
+    paths = []
+    for i, status in enumerate(statuses):
+        a0 = math.radians(i / n * 360 + gap / 2)
+        a1 = math.radians((i + 1) / n * 360 - gap / 2)
+        x0, y0 = c + r * math.cos(a0), c + r * math.sin(a0)
+        x1, y1 = c + r * math.cos(a1), c + r * math.sin(a1)
+        large = 1 if (a1 - a0) > math.pi else 0
+        paths.append(f'<path class="seg {SEG_CLASS[status]}" d="M {x0:.2f} {y0:.2f} A {r} {r} 0 {large} 1 {x1:.2f} {y1:.2f}"/>')
+    return '<svg viewBox="0 0 120 120" aria-hidden="true">' + "".join(paths) + "</svg>"
+
+
+def who_block(item):
+    rows = []
+    if item.get("you"):
+        rows.append(f"<dt>You</dt><dd>{t(item['you'])}</dd>")
+    if item.get("prodmate"):
+        rows.append(f"<dt>{'Then ProdMate' if item.get('you') else 'ProdMate'}</dt><dd>{t(item['prodmate'])}</dd>")
+    return f'<dl class="who">{"".join(rows)}</dl>' if rows else ""
+
+
+def steps_block(item):
+    if not item.get("steps"):
+        return ""
+    lis = "".join(f"<li>{t(s)}</li>" for s in item["steps"])
+    return f'<details class="howto"><summary>Show me how</summary><div><ol class="steps">{lis}</ol></div></details>'
+
+
+def nudge(item):
+    if not item.get("say"):
+        return ""
+    lead = "When you’re done, tell ProdMate" if item.get("you") and not item.get("prodmate") else "To start, tell ProdMate"
+    if item.get("you") and item.get("prodmate"):
+        lead = "When you’re done, tell ProdMate"
+    return f'<p class="nudge">{lead} <q>{t(item["say"])}</q>.</p>'
+
+
+def row_body(item):
+    if item["status"] == "Done":
+        out = f"<p>{t(item.get('evidence') or 'Checked and done.')}</p>"
+        if item.get("confirmed"):
+            out += f'<p class="confirmed">you confirmed {t(item["confirmed"])}</p>'
+        return out
+    out = ""
+    if item.get("why"):
+        out += f"<p>{t(item['why'])}</p>"
+    if item.get("found"):
+        out += f'<p><span class="lbl">What I found:</span> {t(item["found"])}</p>'
+    return out + who_block(item) + steps_block(item) + nudge(item)
+
+
+def row(item):
+    fixed = item["status"] == "Done" and item.get("fixed")
+    glyph = {"Done": "d", "Partial": "p", "Can't verify": "c", "Missing": ""}[item["status"]]
+    if fixed:
+        by = '<span class="badge">Fixed just now</span>'
+    elif item["status"] == "Done":
+        by = '<span class="by">Checked</span>'
+    elif item["status"] == "Can't verify" and not str(item.get("by") or "").startswith("You"):
+        by = '<span class="by">You check this</span>'
+    else:
+        by = f'<span class="by">{t(item.get("by") or "")}</span>'
+    return (f'<details class="row{" fixed" if fixed else ""}" data-id="{t(item["id"])}">'
+            f'<summary><span class="glyph {glyph}"></span><span class="t">{t(item["title"])}</span>{by}</summary>'
+            f'<div class="body">{row_body(item)}</div></details>')
+
+
+def first_panel(item, good_shape):
+    if not item:
+        return ""
+    tag = "Check this first" if item["status"] == "Can't verify" else ("Next up" if good_shape else "Do this first")
+    body = f'<p>{t(item["why"])}</p>' if item.get("why") else ""
+    if item.get("found"):
+        body += f'<p><span class="lbl">What I found:</span> {t(item["found"])}</p>'
+    return (f'<div class="first"><div class="tag">{tag}</div><h2>{t(item["title"])}</h2>'
+            f"{body}{who_block(item)}{steps_block(item)}{nudge(item)}</div>")
+
+
+def tier_section(app, tier, first):
+    rows = [i for _, i in items_in(app, tier) if i is not first]
+    if not rows:
+        return ""
+    open_n = sum(1 for i in rows if is_open(i))
+    done_n = len(rows) - open_n
+    more = first is not None and first.get("tier") == tier
+    label = f"{open_n} more, {done_n} done" if more else f"{open_n} to do, {done_n} done"
+    opened = " open" if tier == "blocker" else ""
+    return (f'<section class="tier"><details{opened}><summary><h2>{TIER_HEADINGS[tier] if tier != "blocker" else "Must do before launch"}</h2>'
+            f'<span class="count">{label}</span></summary>{"".join(row(i) for i in rows)}</details></section>')
+
+
+def folded(title, count, inner):
+    return (f'<section class="tier"><details><summary><h2>{title}</h2><span class="count">{count}</span></summary>'
+            f'<div style="padding-top:12px">{inner}</div></details></section>')
+
+
+def app_html(app, checked, index, last_update):
+    s = score(app)
+    first, good_shape = pick_first(app)
+    desc = f", {t(app['description'])}" if app.get("description") else ""
+    good = f'<p class="good">{GOOD_SHAPE}</p>' if good_shape and applicable(app) else ""
+    summary = t(app["summary"]) if applicable(app) else NOTHING_APPLIES
+    meta = t(last_update) if last_update else "Nothing has changed since the last check."
+    parts = [
+        f'<div class="app">{t(app["name"])}{desc}. Checked by ProdMate on {nice_date(checked)}.</div>',
+        '<div class="hero">',
+        f'<div class="ring" role="img" aria-label="{s["percent"]}% ready">{ring_svg(app)}'
+        f'<div class="num"><b>{s["percent"]}%</b><span>{s["done"]} of {s["applicable"]} done</span></div></div>',
+        f'<div>{good}<h1>{t(app["verdict"])}</h1><p class="lede">{summary}</p><p class="meta">{meta}</p>'
+        '<div class="key"><span><i style="background:var(--moss)"></i>done</span>'
+        '<span><i style="border:2px solid var(--indigo)"></i>to do</span>'
+        '<span><i style="border:2px dashed var(--amber)"></i>couldn&#x27;t check</span></div></div>',
+        "</div>",
+    ]
+    cc = app.get("couldnt_check") or {}
+    if cc.get("summary"):
+        details = f'<p>{t(cc["details"])}</p>' if cc.get("details") else ""
+        parts.append(f'<details class="caveat"><summary>{t(cc["summary"])}</summary>{details}</details>')
+    parts.append(first_panel(first, good_shape))
+    parts += [tier_section(app, tier, first) for tier in TIERS]
+    notes = app.get("notes") or []
+    if notes:
+        inner = "".join(f'<p><b>{t(n["title"])}</b> {t(n["text"])}</p>' for n in notes)
+        parts.append(folded("Other things I noticed", f"{len(notes)} note{'s' if len(notes) != 1 else ''}", f'<div class="notice">{inner}</div>'))
+    promises = app.get("promises") or []
+    if promises:
+        inner = "".join(
+            f'<blockquote>&ldquo;{t(p["quote"])}&rdquo; (<code>{t(p["file"])}</code>, line {t(p["line"])})</blockquote>'
+            + (f'<p>{t(p["effect"])}</p>' if p.get("effect") else "")
+            for p in promises
+        )
+        parts.append(folded("Promises I kept", f"{len(promises)} promise{'s' if len(promises) != 1 else ''}", inner))
+    na = [i for i in app.get("items", []) if i.get("status") == "Not applicable"]
+    if na:
+        lis = "".join(f'<li>{t(i["title"])} <span class="why">{t(i["na_reason"])}</span></li>' for i in na)
+        parts.append(folded(f"Doesn&#x27;t apply to {t(app['name'])}", f"{len(na)} item{'s' if len(na) != 1 else ''}", f'<ul class="na">{lis}</ul>'))
+    return f'<div class="app-section" id="app-{index}">' + "".join(parts) + "</div>"
+
+
+def render_html(report):
+    """The guided report as one self-contained HTML page (inline CSS and JS, no network)."""
+    apps = report["apps"]
+    css = (ASSETS / "report.css").read_text(encoding="utf-8")
+    js = (ASSETS / "report.js").read_text(encoding="utf-8")
+    title = f"{t(apps[0]['name'])} launch readiness" if len(apps) == 1 else "Launch readiness"
+    overview = ""
+    if len(apps) > 1:
+        lis = "".join(f'<li><a href="#app-{n}">{t(a["name"])}</a><span class="pct">{score(a)["percent"]}% ready</span></li>'
+                      for n, a in enumerate(apps, 1))
+        overview = f'<nav class="overview"><h2>Apps in this repo</h2><ul>{lis}</ul></nav>'
+    sections = "".join(app_html(a, report["checked"], n, report.get("last_update")) for n, a in enumerate(apps, 1))
+    footer = ('<footer>This page updates itself while ProdMate is working. '
+              'The same report is saved as <code>.prodmate/report.md</code>.</footer>')
+    return ("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n"
+            "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+            f"<title>{title}</title>\n<style>\n{css}</style>\n</head>\n<body>\n<main>\n"
+            f"{overview}{sections}{footer}\n</main>\n<script>\n{js}</script>\n</body>\n</html>\n")
 
 
 def main(argv):

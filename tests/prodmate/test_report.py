@@ -127,5 +127,71 @@ class MarkdownTest(unittest.TestCase):
         self.assertIn("Nothing on the checklist applies to this app.", md)
 
 
+class HtmlTest(unittest.TestCase):
+    def html(self, data=None):
+        return report.render_html(data or load())
+
+    def test_html_is_self_contained(self):
+        page = self.html()
+        self.assertTrue(page.startswith("<!DOCTYPE html>"))
+        for banned in ("<link", 'src="http', "src='http", "@import", "url(http"):
+            self.assertNotIn(banned, page)
+
+    def test_html_ring_has_one_segment_per_applicable_item(self):
+        page = self.html()
+        self.assertEqual(page.count('class="seg '), 47)
+        self.assertIn("40%", page)
+
+    def test_html_escapes_repo_text(self):
+        app = app_with([("blocker", "Missing")])
+        app["items"][0]["title"] = "<script>alert(1)</script>"
+        app["items"][0]["found"] = 'In `app/x.ts`: "><img src=x onerror=alert(1)>'
+        page = self.html(single(app))
+        self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", page)
+        self.assertIn("&lt;img src=x onerror=alert(1)&gt;", page)
+        self.assertNotIn("<script>alert", page)
+        self.assertNotIn("<img src=x", page)
+        self.assertIn("<code>app/x.ts</code>", page)
+
+    def test_html_do_this_first(self):
+        page = self.html()
+        first = page.split('class="first"', 1)[1].split('<section class="tier"', 1)[0]
+        self.assertIn("Replace the Stripe key saved in your code", first)
+        self.assertEqual(first.count("<li>"), 5)
+
+    def test_html_fixed_and_confirmed(self):
+        app = app_with([("blocker", "Done"), ("grow", "Done"), ("grow", "Missing")])
+        app["items"][0]["fixed"] = "2026-11-02"
+        app["items"][1]["confirmed"] = "2026-11-03"
+        page = self.html(single(app))
+        self.assertIn('class="row fixed"', page)
+        self.assertIn("Fixed just now", page)
+        self.assertIn("you confirmed 2026-11-03", page)
+
+    def test_html_multi_app_sections(self):
+        web = app_with([("blocker", "Done"), ("grow", "Missing")])
+        api = app_with([("blocker", "Missing"), ("grow", "Partial")])
+        web["name"], web["path"], api["name"], api["path"] = "Web", "apps/web", "API", "apps/api"
+        data = single(web)
+        data["apps"].append(api)
+        page = self.html(data)
+        self.assertIn('class="overview"', page)
+        overview = page.split('class="overview"', 1)[1].split("</nav>", 1)[0]
+        self.assertIn("Web", overview)
+        self.assertIn("API", overview)
+        self.assertIn("50%", overview)
+        self.assertIn("25%", overview)
+        self.assertEqual(page.count('class="app-section"'), 2)
+        self.assertEqual(page.count('class="ring"'), 2)
+
+    def test_html_no_visible_ids(self):
+        import re
+
+        page = self.html()
+        body = page.split("<body>", 1)[1].split("<script>", 1)[0]
+        text = re.sub(r"<[^>]+>", " ", body)
+        self.assertNotRegex(text, r"\b(web|common|macos|llm)\.[a-z]")
+
+
 if __name__ == "__main__":
     unittest.main()
