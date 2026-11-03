@@ -11,6 +11,7 @@ import datetime
 import html
 import json
 import math
+import os
 import re
 import sys
 from pathlib import Path
@@ -398,9 +399,45 @@ def render_html(report):
             f"{overview}{sections}{footer}\n</main>\n<script>\n{js}</script>\n</body>\n</html>\n")
 
 
+def write_atomic(path, text):
+    """Write via a temp file and rename, so a live page never reloads into a half-written file."""
+    tmp = path.with_name(f".{path.name}.tmp")
+    tmp.write_text(text, encoding="utf-8")
+    os.replace(tmp, path)
+
+
+def render(repo):
+    """Validate <repo>/.prodmate/report.json and write report.md and report.html. Returns (paths, errors)."""
+    folder = Path(repo) / ".prodmate"
+    source = folder / "report.json"
+    if not source.is_file():
+        return None, [f"no report.json at {source}"]
+    try:
+        data = json.loads(source.read_text(encoding="utf-8"))
+    except ValueError as exc:
+        return None, [f"{source} isn't valid JSON: {exc}"]
+    errors = validate(data)
+    if errors:
+        return None, errors
+    markdown, page = render_markdown(data), render_html(data)
+    md_path, html_path = folder / "report.md", folder / "report.html"
+    write_atomic(md_path, markdown)
+    write_atomic(html_path, page)
+    return {"markdown": str(md_path), "html": str(html_path)}, []
+
+
 def main(argv):
-    print(__doc__.strip(), file=sys.stderr)
-    return 2
+    if len(argv) != 3 or argv[1] != "render":
+        print(__doc__.strip(), file=sys.stderr)
+        return 2
+    paths, errors = render(argv[2])
+    if errors:
+        print("report.json has problems, so nothing was written:")
+        for error in errors:
+            print(f"- {error}")
+        return 1
+    print(json.dumps(paths))
+    return 0
 
 
 if __name__ == "__main__":

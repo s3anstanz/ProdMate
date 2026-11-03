@@ -193,5 +193,55 @@ class HtmlTest(unittest.TestCase):
         self.assertNotRegex(text, r"\b(web|common|macos|llm)\.[a-z]")
 
 
+class CliTest(unittest.TestCase):
+    def setUp(self):
+        import tempfile
+
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self.tmp.name)
+        self.out = self.repo / ".prodmate"
+        self.out.mkdir()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def run_cli(self):
+        import subprocess
+
+        return subprocess.run([sys.executable, str(SCRIPTS / "report.py"), "render", str(self.repo)],
+                              capture_output=True, text=True)
+
+    def test_render_cli_writes_both(self):
+        (self.out / "report.json").write_text(FIXTURE.read_text(encoding="utf-8"), encoding="utf-8")
+        result = self.run_cli()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        paths = json.loads(result.stdout)
+        self.assertEqual(Path(paths["markdown"]), self.out / "report.md")
+        self.assertEqual(Path(paths["html"]), self.out / "report.html")
+        self.assertIn("Not ready for launch yet, but close.", (self.out / "report.html").read_text(encoding="utf-8"))
+        self.assertIn("# Production readiness: Crumbly", (self.out / "report.md").read_text(encoding="utf-8"))
+
+    def test_render_invalid_json_writes_nothing(self):
+        (self.out / "report.md").write_text("old markdown", encoding="utf-8")
+        (self.out / "report.html").write_text("old html", encoding="utf-8")
+        data = load()
+        data["apps"][0]["items"][0]["status"] = "Fine"
+        (self.out / "report.json").write_text(json.dumps(data), encoding="utf-8")
+        result = self.run_cli()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Fine", result.stdout)
+        (self.out / "report.json").write_text("{ not json", encoding="utf-8")
+        result = self.run_cli()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("isn't valid JSON", result.stdout)
+        self.assertEqual((self.out / "report.md").read_text(encoding="utf-8"), "old markdown")
+        self.assertEqual((self.out / "report.html").read_text(encoding="utf-8"), "old html")
+
+    def test_render_missing_report_json(self):
+        result = self.run_cli()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("report.json", result.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()
