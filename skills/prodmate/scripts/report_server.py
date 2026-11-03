@@ -10,6 +10,7 @@ on 127.0.0.1 until it has had no requests for --idle-minutes. The page polls
 import argparse
 import json
 import os
+import re
 import sys
 import threading
 import time
@@ -17,6 +18,16 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 VERSION_PATH = "/__prodmate/version"
+RENDER_META = re.compile(rb'<meta name="prodmate-render" content="([0-9a-f]+)">')
+
+
+def page_version(report_html):
+    """The render version report.py wrote into the page, or the file's mtime and size if it has none."""
+    match = RENDER_META.search(report_html.read_bytes())
+    if match:
+        return match.group(1).decode()
+    st = report_html.stat()
+    return f"{st.st_mtime_ns}-{st.st_size}"
 
 
 def make_server(report_html, port=0):
@@ -45,8 +56,7 @@ def make_server(report_html, port=0):
                 if path == "/":
                     self.send(200, report_html.read_bytes(), "text/html; charset=utf-8")
                 elif path == VERSION_PATH:
-                    st = report_html.stat()
-                    body = json.dumps({"version": f"{st.st_mtime_ns}-{st.st_size}"}).encode()
+                    body = json.dumps({"version": page_version(report_html)}).encode()
                     self.send(200, body, "application/json")
                 else:
                     self.send(404, b"Not found", "text/plain; charset=utf-8")

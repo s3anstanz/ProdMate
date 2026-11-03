@@ -251,6 +251,30 @@ class HtmlTest(unittest.TestCase):
         self.assertEqual(page.count('class="app-section"'), 2)
         self.assertEqual(page.count('class="ring"'), 2)
 
+    def test_html_rows_have_status_text(self):
+        import re
+
+        app = app_with([("blocker", "Missing"), ("blocker", "Partial"), ("grow", "Can't verify"), ("grow", "Done"), ("polish", "Missing")])
+        page = self.html(single(app))
+        rows = re.findall(r'<details class="row[^"]*" data-id="[^"]+"><summary>(.*?)</summary>', page)
+        self.assertEqual(len(rows), 4)  # the first Missing blocker is in "Do this first"
+        expected = ["Partly done", "Couldn&#x27;t check", "Done", "To do"]
+        for summary, label in zip(rows, expected):
+            with self.subTest(label=label):
+                self.assertIn(f'<span class="sr">{label}: </span>', summary)
+
+    def test_html_embeds_render_version(self):
+        import re
+
+        def version(page):
+            return re.search(r'<meta name="prodmate-render" content="([0-9a-f]{16})">', page).group(1)
+
+        data = load()
+        first = version(self.html(data))
+        self.assertEqual(version(self.html(data)), first)
+        data["apps"][0]["items"][0]["title"] += " (changed)"
+        self.assertNotEqual(version(self.html(data)), first)
+
     def test_html_no_visible_ids(self):
         import re
 

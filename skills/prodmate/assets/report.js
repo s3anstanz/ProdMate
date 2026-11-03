@@ -37,7 +37,10 @@
     window.scrollTo(0, state.y || 0);
   }
 
-  var seen = null;
+  // Start from the version of the page actually on screen, so a render that lands
+  // before the first poll still reloads it.
+  var meta = document.querySelector('meta[name="prodmate-render"]');
+  var seen = meta ? meta.content : null;
   function check() {
     fetch("/__prodmate/version", { cache: "no-store" })
       .then(function (r) { return r.ok ? r.json() : null; })

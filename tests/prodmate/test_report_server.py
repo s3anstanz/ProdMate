@@ -58,6 +58,10 @@ class ReportServerTest(unittest.TestCase):
         self.page.write_text("<!DOCTYPE html><p>second, longer</p>", encoding="utf-8")
         self.assertNotEqual(self.version(), before)
 
+    def test_version_is_the_pages_render_version(self):
+        self.page.write_text('<!DOCTYPE html><meta name="prodmate-render" content="0123456789abcdef"><p>x</p>', encoding="utf-8")
+        self.assertEqual(self.version(), "0123456789abcdef")
+
     def test_server_missing_file_is_404(self):
         self.page.unlink()
         self.assertEqual(self.get("/")[0], 404)

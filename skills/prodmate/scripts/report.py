@@ -8,6 +8,7 @@ from it, so the two can never disagree.
 Usage: python3 scripts/report.py render <repo>
 """
 import datetime
+import hashlib
 import html
 import json
 import math
@@ -250,6 +251,7 @@ def render_markdown(report):
 
 
 ASSETS = Path(__file__).resolve().parents[1] / "assets"
+STATUS_TEXT = {"Done": "Done", "Partial": "Partly done", "Can't verify": "Couldn't check", "Missing": "To do"}
 SEG_CLASS = {"Done": "seg-done", "Partial": "seg-partial", "Can't verify": "seg-cant", "Missing": "seg-todo"}
 MONTHS = ("January", "February", "March", "April", "May", "June", "July", "August",
           "September", "October", "November", "December")
@@ -340,7 +342,8 @@ def row(item):
     else:
         by = f'<span class="by">{t(item.get("by") or "")}</span>'
     return (f'<details class="row{" fixed" if fixed else ""}" data-id="{t(item["id"])}">'
-            f'<summary><span class="glyph {glyph}"></span><span class="t">{t(item["title"])}</span>{by}</summary>'
+            f'<summary><span class="glyph {glyph}"></span><span class="sr">{t(STATUS_TEXT[item["status"]])}: </span>'
+            f'<span class="t">{t(item["title"])}</span>{by}</summary>'
             f'<div class="body">{row_body(item)}</div></details>')
 
 
@@ -431,10 +434,17 @@ def render_html(report):
     sections = "".join(app_html(a, report["checked"], n, report.get("last_update")) for n, a in enumerate(apps, 1))
     footer = ('<footer>This page updates itself while ProdMate is working. '
               'The same report is saved as <code>.prodmate/report.md</code>.</footer>')
-    return ("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n"
+    page = ("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n"
             "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
-            f"<title>{title}</title>\n<style>\n{css}</style>\n</head>\n<body>\n<main>\n"
+            f"<title>{title}</title>\n{RENDER_META.format('')}\n<style>\n{css}</style>\n</head>\n<body>\n<main>\n"
             f"{overview}{sections}{footer}\n</main>\n<script>\n{js}</script>\n</body>\n</html>\n")
+    # The page carries a hash of its own content, so it can tell whether the file on
+    # disk is the one it's showing (and an identical re-render doesn't reload it).
+    version = hashlib.sha256(page.encode("utf-8")).hexdigest()[:16]
+    return page.replace(RENDER_META.format(""), RENDER_META.format(version), 1)
+
+
+RENDER_META = '<meta name="prodmate-render" content="{}">'
 
 
 def write_atomic(path, text):
