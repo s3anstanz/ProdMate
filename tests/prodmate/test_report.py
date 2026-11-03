@@ -82,5 +82,47 @@ class ReportDataTest(unittest.TestCase):
         self.assertEqual(report.ring_order(app), ["Done", "Partial", "Can't verify", "Missing"])
 
 
+def single(app):
+    return {"version": 1, "checked": "2026-11-02", "last_update": None, "apps": [app]}
+
+
+class MarkdownTest(unittest.TestCase):
+    def test_markdown_sections_in_order(self):
+        md = report.render_markdown(load())
+        headings = [
+            "# Production readiness: Crumbly",
+            "## What I checked and what I couldn't",
+            "## Promises honored",
+            "## Launch blockers",
+            "## Before you grow",
+            "## Polish",
+            "## Other things I noticed",
+            "## You do",
+            "<summary>Not applicable (3)</summary>",
+        ]
+        positions = [md.index(h) for h in headings]
+        self.assertEqual(positions, sorted(positions))
+
+    def test_markdown_summary_line(self):
+        md = report.render_markdown(load())
+        self.assertIn("Checked 2026-11-02 with ProdMate.", md)
+        # open items per tier in the fixture: blocker 10, grow 20, polish 5
+        self.assertIn("10 launch blockers, 20 before you grow, 5 polish.", md)
+
+    def test_markdown_good_shape(self):
+        md = report.render_markdown(single(app_with([("blocker", "Done"), ("grow", "Missing")])))
+        body = md.split("\n", 1)[1].lstrip()
+        self.assertTrue(body.startswith("You're in good shape."), body[:80])
+
+    def test_markdown_confirmed_label(self):
+        app = app_with([("blocker", "Done")])
+        app["items"][0]["confirmed"] = "2026-11-03"
+        self.assertIn("you confirmed 2026-11-03", report.render_markdown(single(app)))
+
+    def test_markdown_no_applicable_items(self):
+        md = report.render_markdown(single(app_with([("grow", "Not applicable")])))
+        self.assertIn("Nothing on the checklist applies to this app.", md)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -99,6 +99,115 @@ def ring_order(app):
     return [item["status"] for _, item in ordered]
 
 
+TIER_HEADINGS = {"blocker": "Launch blockers", "grow": "Before you grow", "polish": "Polish"}
+NOTHING_APPLIES = "Nothing on the checklist applies to this app."
+GOOD_SHAPE = "You're in good shape."
+
+
+def items_in(app, tier):
+    """A tier's applicable items: open ones first (Missing, Partial, Can't verify), then Done."""
+    rows = [i for i in applicable(app) if i["tier"] == tier]
+    return sorted(enumerate(rows), key=lambda p: (OPEN_ORDER.get(p[1]["status"], 3), p[0]))
+
+
+def done_note(item):
+    """What a Done item's evidence line says, including a confirmation date."""
+    note = item.get("evidence") or "Checked."
+    if item.get("confirmed"):
+        note += f" (you confirmed {item['confirmed']})"
+    if item.get("fixed"):
+        note += f" Fixed {item['fixed']}."
+    return note
+
+
+def next_step(item):
+    parts = []
+    if item.get("you"):
+        parts.append(f"You: {item['you']}")
+    if item.get("prodmate"):
+        parts.append(f"{'Then ProdMate' if item.get('you') else 'ProdMate'}: {item['prodmate']}")
+    return " ".join(parts)
+
+
+def markdown_app(app, checked):
+    counts = {t: sum(1 for i in applicable(app) if i["tier"] == t and is_open(i)) for t in TIERS}
+    out = [f"# Production readiness: {app['name']}", ""]
+    _, good_shape = pick_first(app)
+    if not applicable(app):
+        out += [NOTHING_APPLIES, ""]
+    elif good_shape:
+        out += [GOOD_SHAPE, ""]
+    out += [
+        f"{counts['blocker']} launch blockers, {counts['grow']} before you grow, {counts['polish']} polish. "
+        f"Checked {checked} with ProdMate.",
+        "",
+        f"**{app['verdict']}** {app['summary']}",
+        "",
+        "## What I checked and what I couldn't",
+        "",
+    ]
+    cc = app.get("couldnt_check") or {}
+    out += [cc.get("summary", "Everything on the checklist was checked."), ""]
+    if cc.get("details"):
+        out += [cc["details"], ""]
+
+    out += ["## Promises honored", ""]
+    promises = app.get("promises") or []
+    for p in promises:
+        out.append(f'- "{p["quote"]}" (`{p["file"]}:{p["line"]}`). {p.get("effect", "")}'.rstrip())
+    out += (["No product promises found."] if not promises else []) + [""]
+
+    for tier in TIERS:
+        rows = items_in(app, tier)
+        if not rows:
+            continue
+        out += [f"## {TIER_HEADINGS[tier]}", ""]
+        for _, item in rows:
+            if item["status"] == "Done":
+                out.append(f"- {item['title']}: Done. {done_note(item)}")
+                continue
+            out += [f"### {item['title']}: {item['status']}", ""]
+            if item.get("why"):
+                out += [item["why"], ""]
+            if item.get("found"):
+                out.append(f"- **What I found:** {item['found']}")
+            step = next_step(item)
+            if step:
+                out.append(f"- **Next step:** {step}")
+            if item.get("by"):
+                out.append(f"- **Who:** {item['by']}")
+            if item.get("say"):
+                out.append(f"- **Tell ProdMate:** \"{item['say']}\"")
+            out.append("")
+        out.append("")
+
+    notes = app.get("notes") or []
+    if notes:
+        out += ["## Other things I noticed", ""]
+        out += [f"**{n['title']}** {n['text']}\n" for n in notes]
+
+    todo = [i for _, i in sorted(enumerate(applicable(app)), key=lambda p: (TIERS.index(p[1]["tier"]), p[0]))
+            if is_open(i) and i.get("you") and i.get("steps")]
+    if todo:
+        out += ["## You do", ""]
+        for n, item in enumerate(todo, 1):
+            out.append(f"{n}. **{item['title']}.** {item['you']}")
+            out += [f"   {s_n}. {step}" for s_n, step in enumerate(item["steps"], 1)]
+        out.append("")
+
+    na = [i for i in app.get("items", []) if i.get("status") == "Not applicable"]
+    if na:
+        out += ["<details>", f"<summary>Not applicable ({len(na)})</summary>", ""]
+        out += [f"- {i['title']}: {i['na_reason']}" for i in na]
+        out += ["", "</details>", ""]
+    return "\n".join(out)
+
+
+def render_markdown(report):
+    """The report as markdown, one section per app, from report.json data."""
+    return "\n".join(markdown_app(app, report["checked"]) for app in report["apps"]).rstrip() + "\n"
+
+
 def main(argv):
     print(__doc__.strip(), file=sys.stderr)
     return 2
